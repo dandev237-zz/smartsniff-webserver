@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace smartsniff_api
+namespace smartsniff_api.Models
 {
     public partial class AsocSessionDevice
     {

@@ -66,6 +66,10 @@ namespace smartsniff_api
             {
                 entity.ToTable("device", "schemadb");
 
+                entity.HasIndex(e => e.Bssid)
+                    .HasName("deviceBssidUnique")
+                    .IsUnique();
+
                 entity.Property(e => e.Id)
                     .HasColumnName("id")
                     .HasDefaultValueSql("nextval('schemadb.device_id_seq'::regclass)");

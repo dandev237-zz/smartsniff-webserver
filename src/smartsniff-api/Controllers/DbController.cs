@@ -86,17 +86,16 @@ namespace smartsniff_api.Controllers
                     //Por cada asociación
                     foreach(AsocSessionDevice a in data.asocsessiondevices)
                     {
-                        //Buscar la ID de la sesión (Por fecha de inicio)
-                        Session queriedSession = _context.Session.Where(ID => a.session.StartDate == ID.StartDate).First();
+                        //Buscar la sesión (Por fecha de inicio y MAC)
+                        Session queriedSession = _context.Session.Where(ID => 
+                        a.session.StartDate == ID.StartDate
+                        && a.session.MacAddress == ID.MacAddress).First();
 
                         //Buscar la ID del dispositivo 
                         Device queriedDevice = _context.Device.Where(ID => a.device.Bssid == ID.Bssid).First();
 
                         //Buscar la ID de la localización
-                        //Iterar en las location de las asociaciones 
-                        Location queriedLocation = _context.Location.Where(ID => 
-                        a.location.Coordinates.X == ID.Coordinates.X && a.location.Coordinates.Y == ID.Coordinates.Y)
-                        .First();
+                        Location queriedLocation = getMatchingLocation(queriedSession, queriedDevice, jsonObject, dateTimeConverter);
 
                         //Añadir la fila con las tres IDs
                         AsocSessionDevice association = new AsocSessionDevice
@@ -111,9 +110,6 @@ namespace smartsniff_api.Controllers
                         queriedLocation.AsocSessionDevice.Add(association);
                     }
                     _context.SaveChanges();
-
-                    //_context.AsocSessionDevice.AddRange(data.asocsessiondevices);
-
                 }
                 return StatusCode(201);
             }
@@ -121,7 +117,63 @@ namespace smartsniff_api.Controllers
             //400 Response
             return BadRequest();
         }
+
+        public Location getMatchingLocation(Session queriedSession, Device queriedDevice, JObject jsonObject, IsoDateTimeConverter dateTimeConverter)
+        {
+            Location resultLocation = new Location();
+
+            //Coger la location de la asociación en el JSON
+            var allAssociations = jsonObject["asocsessiondevices"].Children();
+            double[] associationCoordinates = new double[2];
+
+            foreach (JToken token in allAssociations)
+            {
+                JToken tokenizedSession = token.SelectToken("session");
+                Session session = JsonConvert.DeserializeObject<Session>(tokenizedSession.ToString(), dateTimeConverter);
+
+                JToken tokenizedDevice = token.SelectToken("device");
+                Device device = tokenizedDevice.ToObject<Device>();
+
+                if (queriedSession.Equals(session))
+                {
+                    if (queriedDevice.Equals(device))
+                    {
+                        //We have found the correct association! Get the location coordinates to compare them later
+                        //to the locations contained in the JSON file
+                        JToken coordinatesToken = token.SelectToken("location");
+                        associationCoordinates[0] = coordinatesToken.SelectToken("latitude").ToObject<Double>();
+                        associationCoordinates[1] = coordinatesToken.SelectToken("longitude").ToObject<Double>();
+
+                        break;
+                    }
+                }
+
+            }
+
+            var allLocations = jsonObject["locations"].Children();
+            foreach (JToken token in allLocations)
+            {
+                JToken coordinatesToken = token.SelectToken("coordinates");
+                double latitude = coordinatesToken.SelectToken("latitude").ToObject<Double>();
+                double longitude = coordinatesToken.SelectToken("longitude").ToObject<Double>();
+
+                if (associationCoordinates[0] == latitude && associationCoordinates[1] == longitude)
+                {
+                    //We have found the correct location!
+                    NpgsqlPoint locationCoordinates = new NpgsqlPoint(latitude, longitude);
+
+                    resultLocation = _context.Location.Where(Location => 
+                    locationCoordinates.X == Location.Coordinates.X &&
+                    locationCoordinates.Y == Location.Coordinates.Y).First();
+
+                    break;
+                }
+            }
+            return resultLocation;
+        }
     }
+
+    
 
     public class RootObject
     {

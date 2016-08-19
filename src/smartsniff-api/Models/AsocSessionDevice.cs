@@ -9,8 +9,8 @@ namespace smartsniff_api.Models
         public int IdDevice { get; set; }
         public int IdLocation { get; set; }
 
-        public virtual Device IdDeviceNavigation { get; set; }
-        public virtual Location IdLocationNavigation { get; set; }
-        public virtual Session IdSessionNavigation { get; set; }
+        public virtual Device device { get; set; }
+        public virtual Location location { get; set; }
+        public virtual Session session { get; set; }
     }
 }

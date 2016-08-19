@@ -43,19 +43,19 @@ namespace smartsniff_api
                     .HasColumnName("idDevice")
                     .HasDefaultValueSql("nextval('schemadb.\"asocSessionDevice_idDevice_seq\"'::regclass)");
 
-                entity.HasOne(d => d.IdDeviceNavigation)
+                entity.HasOne(d => d.device)
                     .WithMany(p => p.AsocSessionDevice)
                     .HasForeignKey(d => d.IdDevice)
                     .OnDelete(DeleteBehavior.Restrict)
                     .HasConstraintName("idDeviceForeign");
 
-                entity.HasOne(d => d.IdLocationNavigation)
+                entity.HasOne(d => d.location)
                     .WithMany(p => p.AsocSessionDevice)
                     .HasForeignKey(d => d.IdLocation)
                     .OnDelete(DeleteBehavior.Restrict)
                     .HasConstraintName("idLocationForeign");
 
-                entity.HasOne(d => d.IdSessionNavigation)
+                entity.HasOne(d => d.session)
                     .WithMany(p => p.AsocSessionDevice)
                     .HasForeignKey(d => d.IdSession)
                     .OnDelete(DeleteBehavior.Restrict)

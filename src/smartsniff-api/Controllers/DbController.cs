@@ -7,6 +7,7 @@ using smartsniff_api.Models;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using NpgsqlTypes;
 
 // For more information on enabling Web API for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -51,20 +52,69 @@ namespace smartsniff_api.Controllers
                 }
                 if (data.locations.Any())
                 {
-                    foreach(Location l in data.locations)
+                    //Coger todas las localizaciones del JSON
+                    var allLocations = jsonObject["locations"].Children();
+
+                    //Para cada localización
+                    foreach(JToken token in allLocations)
                     {
-                        _context.Location.Add(l);
-                        _context.SaveChanges();
+                        //Coger el token de las coordenadas y, de ese token, latitud y longitud
+                        JToken coordinatesToken = token.SelectToken("coordinates");
+                        double latitude = coordinatesToken.SelectToken("latitude").ToObject<Double>();
+                        double longitude = coordinatesToken.SelectToken("longitude").ToObject<Double>();
+
+                        //Coger, del token principal, la fecha
+                        DateTime locationDate = Convert.ToDateTime(token.SelectToken("date").ToString());
+                        
+                        //Crear la localización a añadir a la base de datos
+                        Location locationToAdd = new Location
+                        {
+                            Date = locationDate,
+                            Coordinates = new NpgsqlPoint(latitude, longitude)
+                        };
+
+                        _context.Location.Add(locationToAdd);
                     }
+
+                    _context.SaveChanges();
 
                     //_context.Location.AddRange(data.locations);
                 }
 
-                /*if (data.asocsessiondevices.Any())
+                if(data.asocsessiondevices.Any())
                 {
-                    _context.AsocSessionDevice.AddRange(data.asocsessiondevices);
+                    //Por cada asociación
+                    foreach(AsocSessionDevice a in data.asocsessiondevices)
+                    {
+                        //Buscar la ID de la sesión (Por fecha de inicio)
+                        Session queriedSession = _context.Session.Where(ID => a.session.StartDate == ID.StartDate).First();
+
+                        //Buscar la ID del dispositivo 
+                        Device queriedDevice = _context.Device.Where(ID => a.device.Bssid == ID.Bssid).First();
+
+                        //Buscar la ID de la localización
+                        //Iterar en las location de las asociaciones 
+                        Location queriedLocation = _context.Location.Where(ID => 
+                        a.location.Coordinates.X == ID.Coordinates.X && a.location.Coordinates.Y == ID.Coordinates.Y)
+                        .First();
+
+                        //Añadir la fila con las tres IDs
+                        AsocSessionDevice association = new AsocSessionDevice
+                        {
+                            session = queriedSession,
+                            device = queriedDevice,
+                            location = queriedLocation
+                        };
+
+                        queriedSession.AsocSessionDevice.Add(association);
+                        queriedDevice.AsocSessionDevice.Add(association);
+                        queriedLocation.AsocSessionDevice.Add(association);
+                    }
                     _context.SaveChanges();
-                }*/
+
+                    //_context.AsocSessionDevice.AddRange(data.asocsessiondevices);
+
+                }
                 return StatusCode(201);
             }
 

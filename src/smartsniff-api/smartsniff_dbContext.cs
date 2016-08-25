@@ -103,7 +103,7 @@ namespace smartsniff_api
 
                 entity.Property(e => e.Date)
                     .HasColumnName("date")
-                    .HasColumnType("timestamptz");
+                    .HasColumnType("timestampt");
             });
 
             modelBuilder.Entity<Session>(entity =>
@@ -116,7 +116,7 @@ namespace smartsniff_api
 
                 entity.Property(e => e.EndDate)
                     .HasColumnName("endDate")
-                    .HasColumnType("timestamptz");
+                    .HasColumnType("timestampt");
 
                 entity.Property(e => e.MacAddress)
                     .IsRequired()
@@ -124,7 +124,7 @@ namespace smartsniff_api
 
                 entity.Property(e => e.StartDate)
                     .HasColumnName("startDate")
-                    .HasColumnType("timestamptz");
+                    .HasColumnType("timestampt");
             });
 
             modelBuilder.HasSequence("asocSessionDevice_idDevice_seq", "schemadb");

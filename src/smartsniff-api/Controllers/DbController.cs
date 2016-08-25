@@ -8,6 +8,7 @@ using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using NpgsqlTypes;
+using Microsoft.EntityFrameworkCore;
 
 // For more information on enabling Web API for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -36,37 +37,43 @@ namespace smartsniff_api.Controllers
             {
                 foreach(Session s in data.sessions)
                 {
+                    if (_context.Session.Any(session => session.StartDate == s.StartDate && session.MacAddress == s.MacAddress)) continue;
+
                     _context.Session.Add(s);
                     _context.SaveChanges();
                 }
-                //_context.Session.AddRange(data.sessions);
 
                 if (data.devices.Any())
                 {
                     foreach (Device d in data.devices)
                     {
+                        if (_context.Device.Any(device => device.Bssid.Equals(d.Bssid))) continue;
+
                         _context.Device.Add(d);
                         _context.SaveChanges();
+                        
                     }
-                    //_context.Device.AddRange(data.devices);
                 }
                 if (data.locations.Any())
                 {
-                    //Coger todas las localizaciones del JSON
+                    //Grab all locations from JSON
                     var allLocations = jsonObject["locations"].Children();
 
-                    //Para cada localización
                     foreach(JToken token in allLocations)
                     {
-                        //Coger el token de las coordenadas y, de ese token, latitud y longitud
+                        //Grab coordinates token
                         JToken coordinatesToken = token.SelectToken("coordinates");
                         double latitude = coordinatesToken.SelectToken("latitude").ToObject<Double>();
                         double longitude = coordinatesToken.SelectToken("longitude").ToObject<Double>();
 
-                        //Coger, del token principal, la fecha
+                        //Grab the date from the main token
                         DateTime locationDate = Convert.ToDateTime(token.SelectToken("date").ToString());
-                        
-                        //Crear la localización a añadir a la base de datos
+
+                        if (_context.Location.Any(location => location.Coordinates.X == latitude &&
+                                                  location.Coordinates.Y == longitude &&
+                                                  location.Date.Equals(locationDate))) continue;
+
+                        //If the location is not stored in the databse, then add it
                         Location locationToAdd = new Location
                         {
                             Date = locationDate,
@@ -74,30 +81,31 @@ namespace smartsniff_api.Controllers
                         };
 
                         _context.Location.Add(locationToAdd);
+                        _context.SaveChanges();
                     }
-
-                    _context.SaveChanges();
-
-                    //_context.Location.AddRange(data.locations);
                 }
 
                 if(data.asocsessiondevices.Any())
                 {
-                    //Por cada asociación
                     foreach(AsocSessionDevice a in data.asocsessiondevices)
                     {
-                        //Buscar la sesión (Por fecha de inicio y MAC)
+                        //Look for the session (startDate & Mac)
                         Session queriedSession = _context.Session.Where(ID => 
                         a.session.StartDate == ID.StartDate
                         && a.session.MacAddress == ID.MacAddress).First();
 
-                        //Buscar la ID del dispositivo 
+                        //Look for the ID of the device
                         Device queriedDevice = _context.Device.Where(ID => a.device.Bssid == ID.Bssid).First();
 
-                        //Buscar la ID de la localización
+                        //Look for the location
                         Location queriedLocation = getMatchingLocation(queriedSession, queriedDevice, jsonObject, dateTimeConverter);
 
-                        //Añadir la fila con las tres IDs
+                        if (_context.AsocSessionDevice.Any(assoc =>
+                         assoc.IdSession == queriedSession.Id &&
+                         assoc.IdDevice == queriedDevice.Id &&
+                         assoc.IdLocation == queriedLocation.Id)) continue;
+
+                        //In the event the association does not exist, then add it
                         AsocSessionDevice association = new AsocSessionDevice
                         {
                             session = queriedSession,
@@ -108,6 +116,7 @@ namespace smartsniff_api.Controllers
                         queriedSession.AsocSessionDevice.Add(association);
                         queriedDevice.AsocSessionDevice.Add(association);
                         queriedLocation.AsocSessionDevice.Add(association);
+                        
                     }
                     _context.SaveChanges();
                 }
@@ -122,7 +131,7 @@ namespace smartsniff_api.Controllers
         {
             Location resultLocation = new Location();
 
-            //Coger la location de la asociación en el JSON
+            //Grab location info from the JSON (association section)
             var allAssociations = jsonObject["asocsessiondevices"].Children();
             double[] associationCoordinates = new double[2];
 
@@ -147,28 +156,14 @@ namespace smartsniff_api.Controllers
                         break;
                     }
                 }
-
             }
 
-            var allLocations = jsonObject["locations"].Children();
-            foreach (JToken token in allLocations)
-            {
-                JToken coordinatesToken = token.SelectToken("coordinates");
-                double latitude = coordinatesToken.SelectToken("latitude").ToObject<Double>();
-                double longitude = coordinatesToken.SelectToken("longitude").ToObject<Double>();
+            //All JSON locations are stored in the DB. We can search for the exact location
+            //inside the DB at this point
+            resultLocation = _context.Location.Where(location =>
+                    associationCoordinates[0] == location.Coordinates.X &&
+                    associationCoordinates[1] == location.Coordinates.Y).First();
 
-                if (associationCoordinates[0] == latitude && associationCoordinates[1] == longitude)
-                {
-                    //We have found the correct location!
-                    NpgsqlPoint locationCoordinates = new NpgsqlPoint(latitude, longitude);
-
-                    resultLocation = _context.Location.Where(Location => 
-                    locationCoordinates.X == Location.Coordinates.X &&
-                    locationCoordinates.Y == Location.Coordinates.Y).First();
-
-                    break;
-                }
-            }
             return resultLocation;
         }
     }

@@ -127,7 +127,7 @@ namespace smartsniff_api.Controllers
                     }
                 }
 
-                return CreatedAtRoute(null, null);
+                return StatusCode(201);
             }
 
             //400 Response

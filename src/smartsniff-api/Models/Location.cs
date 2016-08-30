@@ -1,6 +1,6 @@
-﻿using System;
+﻿using NpgsqlTypes;
+using System;
 using System.Collections.Generic;
-using NpgsqlTypes;
 
 namespace smartsniff_api.Models
 {

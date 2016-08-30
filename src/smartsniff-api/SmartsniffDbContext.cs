@@ -1,15 +1,13 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using smartsniff_api.Models;
 
 namespace smartsniff_api
 {
-    public partial class smartsniff_dbContext : DbContext
+    public partial class SmartsniffDbContext : DbContext
     {
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            #warning To protect potentially sensitive information in your connection string, you should move it out of source code. See http://go.microsoft.com/fwlink/?LinkId=723263 for guidance on storing connection strings.
             optionsBuilder.UseNpgsql(@"Host=localhost;Database=smartsniff-db;Username=postgres;Password=root;");
         }
 

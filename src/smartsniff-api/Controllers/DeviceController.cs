@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using smartsniff_api.Models;
+using System.Collections.Generic;
+using System.Linq;
 
 // For more information on enabling Web API for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -10,25 +10,25 @@ namespace smartsniff_api.Controllers
     [Route("api/[controller]")]
     public class DeviceController : Controller
     {
-        private smartsniff_dbContext _context;
+        private SmartsniffDbContext context;
 
-        public DeviceController(smartsniff_dbContext context)
+        public DeviceController(SmartsniffDbContext _context)
         {
-            _context = context;
+            context = _context;
         }
 
         // GET: api/device
         [HttpGet]
         public IEnumerable<Device> Get()
         {
-            return _context.Device.AsEnumerable();
+            return context.Device.AsEnumerable();
         }
 
         // GET api/device/5
         [HttpGet("{id}", Name = "GetDevice")]
         public IActionResult GetDeviceById(int id)
         {
-            List<Device> deviceList = _context.Device.ToList();
+            List<Device> deviceList = context.Device.ToList();
 
             foreach (Device d in deviceList)
             {
@@ -45,8 +45,8 @@ namespace smartsniff_api.Controllers
         {
             if (device != null)
             {
-                _context.Device.Add(device);
-                _context.SaveChanges();
+                context.Device.Add(device);
+                context.SaveChanges();
                 //201 Response
                 return CreatedAtRoute("GetDevice", new { id = device.Id }, device);
             }

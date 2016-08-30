@@ -1,14 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using smartsniff_api.Models;
-using Newtonsoft.Json.Linq;
+﻿using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using Newtonsoft.Json.Linq;
 using NpgsqlTypes;
-using Microsoft.EntityFrameworkCore;
+using smartsniff_api.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 // For more information on enabling Web API for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -17,14 +15,14 @@ namespace smartsniff_api.Controllers
     [Route("api/[controller]")]
     public class DbController : Controller
     {
-        private smartsniff_dbContext _context;
+        private SmartsniffDbContext context;
 
-        public DbController(smartsniff_dbContext context)
+        public DbController(SmartsniffDbContext _context)
         {
-            _context = context;
+            context = _context;
         }
 
-        // POST api/db/createdevice
+        // POST api/db/storedata
         [HttpPost("StoreData")]
         public IActionResult Post([FromBody] JObject jsonObject)
         {
@@ -33,25 +31,24 @@ namespace smartsniff_api.Controllers
 
             RootObject data = JsonConvert.DeserializeObject<RootObject>(jsonObject.ToString(), dateTimeConverter);
 
-            if(data.sessions.Any())
+            if (data.sessions.Any())
             {
-                foreach(Session s in data.sessions)
+                foreach (Session s in data.sessions)
                 {
-                    if (_context.Session.Any(session => session.StartDate == s.StartDate && session.MacAddress == s.MacAddress)) continue;
+                    if (context.Session.Any(session => session.StartDate == s.StartDate && session.MacAddress == s.MacAddress)) continue;
 
-                    _context.Session.Add(s);
-                    _context.SaveChanges();
+                    context.Session.Add(s);
+                    context.SaveChanges();
                 }
 
                 if (data.devices.Any())
                 {
                     foreach (Device d in data.devices)
                     {
-                        if (_context.Device.Any(device => device.Bssid.Equals(d.Bssid))) continue;
+                        if (context.Device.Any(device => device.Bssid.Equals(d.Bssid))) continue;
 
-                        _context.Device.Add(d);
-                        _context.SaveChanges();
-                        
+                        context.Device.Add(d);
+                        context.SaveChanges();
                     }
                 }
                 if (data.locations.Any())
@@ -59,7 +56,7 @@ namespace smartsniff_api.Controllers
                     //Grab all locations from JSON
                     var allLocations = jsonObject["locations"].Children();
 
-                    foreach(JToken token in allLocations)
+                    foreach (JToken token in allLocations)
                     {
                         //Grab coordinates token
                         JToken coordinatesToken = token.SelectToken("coordinates");
@@ -69,7 +66,7 @@ namespace smartsniff_api.Controllers
                         //Grab the date from the main token
                         DateTime locationDate = Convert.ToDateTime(token.SelectToken("date").ToString());
 
-                        if (_context.Location.Any(location => location.Coordinates.X == latitude &&
+                        if (context.Location.Any(location => location.Coordinates.X == latitude &&
                                                   location.Coordinates.Y == longitude &&
                                                   location.Date.Equals(locationDate))) continue;
 
@@ -80,30 +77,37 @@ namespace smartsniff_api.Controllers
                             Coordinates = new NpgsqlPoint(latitude, longitude)
                         };
 
-                        _context.Location.Add(locationToAdd);
-                        _context.SaveChanges();
+                        context.Location.Add(locationToAdd);
+                        context.SaveChanges();
                     }
                 }
 
-                if(data.asocsessiondevices.Any())
+                if (data.asocsessiondevices.Any())
                 {
-                    foreach(AsocSessionDevice a in data.asocsessiondevices)
+                    foreach (AsocSessionDevice a in data.asocsessiondevices)
                     {
                         //Look for the session (startDate & Mac)
-                        Session queriedSession = _context.Session.Where(ID => 
+                        Session queriedSession = context.Session.Where(ID =>
                         a.session.StartDate == ID.StartDate
                         && a.session.MacAddress == ID.MacAddress).First();
 
                         //Look for the ID of the device
-                        Device queriedDevice = _context.Device.Where(ID => a.device.Bssid == ID.Bssid).First();
+                        Device queriedDevice = context.Device.Where(dev => a.device.Equals(dev)).First();
 
                         //Look for the location
-                        Location queriedLocation = getMatchingLocation(queriedSession, queriedDevice, jsonObject, dateTimeConverter);
+                        Location queriedLocation = getMatchingLocation(queriedSession, queriedDevice, jsonObject, dateTimeConverter, context);
 
-                        if (_context.AsocSessionDevice.Any(assoc =>
+                        var query = context.AsocSessionDevice.Where(assoc =>
                          assoc.IdSession == queriedSession.Id &&
                          assoc.IdDevice == queriedDevice.Id &&
-                         assoc.IdLocation == queriedLocation.Id)) continue;
+                         assoc.IdLocation == queriedLocation.Id);
+
+                        if (query.Any()) continue;
+
+                        /*if (_context.AsocSessionDevice.Any(assoc =>
+                         assoc.IdSession == queriedSession.Id &&
+                         assoc.IdDevice == queriedDevice.Id &&
+                         assoc.IdLocation == queriedLocation.Id)) continue;*/
 
                         //In the event the association does not exist, then add it
                         AsocSessionDevice association = new AsocSessionDevice
@@ -113,21 +117,24 @@ namespace smartsniff_api.Controllers
                             location = queriedLocation
                         };
 
-                        queriedSession.AsocSessionDevice.Add(association);
+                        /*queriedSession.AsocSessionDevice.Add(association);
                         queriedDevice.AsocSessionDevice.Add(association);
-                        queriedLocation.AsocSessionDevice.Add(association);
-                        
+                        queriedLocation.AsocSessionDevice.Add(association);*/
+
+                        context.AsocSessionDevice.Add(association);
+
+                        context.SaveChanges();
                     }
-                    _context.SaveChanges();
                 }
-                return StatusCode(201);
+
+                return CreatedAtRoute(null, null);
             }
 
             //400 Response
             return BadRequest();
         }
 
-        public Location getMatchingLocation(Session queriedSession, Device queriedDevice, JObject jsonObject, IsoDateTimeConverter dateTimeConverter)
+        public Location getMatchingLocation(Session queriedSession, Device queriedDevice, JObject jsonObject, IsoDateTimeConverter dateTimeConverter, SmartsniffDbContext context)
         {
             Location resultLocation = new Location();
 
@@ -160,15 +167,13 @@ namespace smartsniff_api.Controllers
 
             //All JSON locations are stored in the DB. We can search for the exact location
             //inside the DB at this point
-            resultLocation = _context.Location.Where(location =>
+            resultLocation = context.Location.Where(location =>
                     associationCoordinates[0] == location.Coordinates.X &&
                     associationCoordinates[1] == location.Coordinates.Y).First();
 
             return resultLocation;
         }
     }
-
-    
 
     public class RootObject
     {

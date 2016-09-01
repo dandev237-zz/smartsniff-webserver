@@ -1,0 +1,77 @@
+﻿@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>
+        SmartSniff - Heatmap
+    </title>
+    <!-- link to leaflet css -->
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
+    <!-- map is full width and height of device -->
+    <meta name="viewport" content="width=device-width, maximum-scale=1.0, user-scalable=no" />
+    <!-- leaflet js -->
+    <script src="http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.js"></script>
+    <!-- heatmap js -->
+    <script src="~/js/heatmap.min.js"></script>
+    <!-- leaflet.heat js -->
+    <script src="~/js/leaflet-heatmap.js"></script>
+    <style>
+        body {
+            padding: 0;
+            margin: 0;
+        }
+
+        html, body, #map {
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="map">
+    </div>
+    <script>
+        var heat_points = {
+            max: 3,
+            data: [{ lat: 36.6282127, lng: -4.5013727, count: 3 },
+                   { lat: 36.6282908, lng: -4.5015613, count: 15 },
+                   { lat: 36.6277699, lng: -4.5006211, count: 8 }]
+        };
+
+        //Heatmap Code
+        var baseLayer = L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: 'SmartSniff',
+            maxZoom: 17
+        });
+
+        var cfg = {
+            "radius": 20,
+            "maxOpacity": .8,
+            //scaleRadius - scales the radius based on current map zoom
+            "scaleRadius": false,
+            //useLocalExtrema - if false, global maximum is used for colorization
+            //                  if true, the maximum within the current map boundaries will be used
+            "useLocalExtrema": true,
+            //Field name in the data which represents the latitude
+            latField: 'lat',
+            //Field name in the data which represents the longitude
+            lngField: 'lng',
+            //Field name in the data which represents the data value
+            valueField: 'count'
+        };
+
+        var heatmapLayer = new HeatmapOverlay(cfg);
+
+        var map = new L.map('map', {
+            center: new L.LatLng(36.718225, -4.420264),
+            zoom: 12,
+            layers: [baseLayer, heatmapLayer]
+        });
+
+        heatmapLayer.setData(heat_points);
+    </script>
+
+</body>
+</html>

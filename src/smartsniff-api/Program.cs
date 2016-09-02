@@ -14,7 +14,8 @@ namespace smartsniff_api.Models
                 .UseKestrel()
                 .UseContentRoot(Directory.GetCurrentDirectory())
                 .UseIISIntegration()
-                .UseStartup<Startup>().UseUrls(urls)
+                .UseStartup<Startup>()
+                .UseUrls(urls)
                 .Build();
 
             host.Run();

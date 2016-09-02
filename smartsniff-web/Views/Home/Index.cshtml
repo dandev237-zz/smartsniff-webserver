@@ -12,6 +12,8 @@
     <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
     <!-- map is full width and height of device -->
     <meta name="viewport" content="width=device-width, maximum-scale=1.0, user-scalable=no" />
+    <!-- jquery -->
+    <script src="~/js/jquery-3.1.0.min.js"></script>
     <!-- leaflet js -->
     <script src="http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.js"></script>
     <!-- heatmap js -->
@@ -33,11 +35,34 @@
     <div id="map">
     </div>
     <script>
+        $(document).ready(function () {
+            $.ajax({
+                url: 'http://localhost:5001/api/db/getheatmapdata',
+                type: 'GET',
+                dataType: "json",
+                cache: false, //GET request are cached by browsers
+            }).done(function (response) {
+                var i;
+                for (i = 0; i < response.length; i++) {
+                    var post = response[i];
+                    var point = {
+                        lat: post.lat,
+                        lng: post.lng,
+                        count: post.count
+                    }
+
+                    heat_points.data.push(point);
+                }
+
+                //Since this is an asynchronous call, we have to set the data points
+                //on the heatmap layer now
+                heatmapLayer.setData(heat_points);
+            });
+        })
+
+        //Heatmap points object
         var heat_points = {
-            max: 3,
-            data: [{ lat: 36.6282127, lng: -4.5013727, count: 3 },
-                   { lat: 36.6282908, lng: -4.5015613, count: 15 },
-                   { lat: 36.6277699, lng: -4.5006211, count: 8 }]
+            data: []
         };
 
         //Heatmap Code
@@ -69,8 +94,6 @@
             zoom: 12,
             layers: [baseLayer, heatmapLayer]
         });
-
-        heatmapLayer.setData(heat_points);
     </script>
 
 </body>

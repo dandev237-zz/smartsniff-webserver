@@ -25,9 +25,9 @@ namespace smartsniff_api.Controllers
 
         public struct HeatmapPoint
         {
-            private double lat;
-            private double lng;
-            private int count;
+            public double lat { get; set; }
+            public double lng { get; set; }
+            public int count { get; set; }
 
             public HeatmapPoint(double latitude, double longitude, int countValue)
             {
@@ -149,21 +149,6 @@ namespace smartsniff_api.Controllers
             return BadRequest();
         }
 
-        public void GetHeatmapData()
-        {
-            List<Location> locations = context.Location.AsEnumerable().ToList();
-
-            HeatmapPoint[] heatmapData = new HeatmapPoint[locations.Count];
-            foreach (Location loc in locations)
-            {
-                var count = context.AsocSessionDevice.Where(o => o.IdLocation == loc.Id).Count();
-
-                heatmapData.Append(new HeatmapPoint(loc.Coordinates.X, loc.Coordinates.Y, count));
-            }
-
-            string heatmapDataString = JsonConvert.SerializeObject(heatmapData);
-        }
-
         private Location GetMatchingLocation(Session queriedSession, Device queriedDevice, JObject jsonObject, IsoDateTimeConverter dateTimeConverter, SmartsniffDbContext context)
         {
             Location resultLocation = new Location();
@@ -202,6 +187,24 @@ namespace smartsniff_api.Controllers
                     associationCoordinates[1] == location.Coordinates.Y).First();
 
             return resultLocation;
+        }
+
+        // GET api/db/getheatmapdata
+        [HttpGet("GetHeatmapData")]
+        public IActionResult GetHeatmapData()
+        {
+            List<Location> locations = context.Location.AsEnumerable().ToList();
+
+            HeatmapPoint[] heatmapData = new HeatmapPoint[locations.Count];
+            foreach (Location loc in locations)
+            {
+                var count = context.AsocSessionDevice.Where(o => o.IdLocation == loc.Id).Count();
+
+                heatmapData[locations.IndexOf(loc)] = new HeatmapPoint(loc.Coordinates.X, loc.Coordinates.Y, count);
+            }
+
+            JsonResult heatmapDataJson = Json(heatmapData);
+            return heatmapDataJson;
         }
     }
 

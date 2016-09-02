@@ -1,5 +1,6 @@
 ﻿/// <autosync enabled="true" />
 /// <reference path="js/heatmap.min.js" />
+/// <reference path="js/jquery-3.1.0.min.js" />
 /// <reference path="js/leaflet-heatmap.js" />
 /// <reference path="js/site.js" />
 /// <reference path="lib/bootstrap/dist/js/bootstrap.js" />

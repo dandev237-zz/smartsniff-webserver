@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using smartsniff_web.Models;
 
@@ -8,6 +9,7 @@ namespace smartsniff_web
     {
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
+            #warning To protect potentially sensitive information in your connection string, you should move it out of source code. See http://go.microsoft.com/fwlink/?LinkId=723263 for guidance on storing connection strings.
             optionsBuilder.UseNpgsql(@"Host=localhost;Database=smartsniff-db;Username=postgres;Password=root;");
         }
 
@@ -76,9 +78,15 @@ namespace smartsniff_web
                     .IsRequired()
                     .HasColumnName("bssid");
 
+                entity.Property(e => e.ChannelWidth).HasColumnName("channelWidth");
+
                 entity.Property(e => e.Characteristics).HasColumnName("characteristics");
 
+                entity.Property(e => e.Frequency).HasColumnName("frequency");
+
                 entity.Property(e => e.Manufacturer).HasColumnName("manufacturer");
+
+                entity.Property(e => e.SignalIntensity).HasColumnName("signalIntensity");
 
                 entity.Property(e => e.Ssid)
                     .IsRequired()
@@ -99,9 +107,7 @@ namespace smartsniff_web
 
                 entity.Property(e => e.Coordinates).HasColumnName("coordinates");
 
-                entity.Property(e => e.Date)
-                    .HasColumnName("date")
-                    .HasColumnType("timestampt");
+                entity.Property(e => e.Date).HasColumnName("date");
             });
 
             modelBuilder.Entity<Session>(entity =>
@@ -112,17 +118,13 @@ namespace smartsniff_web
                     .HasColumnName("id")
                     .HasDefaultValueSql("nextval('schemadb.session_id_seq'::regclass)");
 
-                entity.Property(e => e.EndDate)
-                    .HasColumnName("endDate")
-                    .HasColumnType("timestampt");
+                entity.Property(e => e.EndDate).HasColumnName("endDate");
 
                 entity.Property(e => e.MacAddress)
                     .IsRequired()
                     .HasColumnName("macAddress");
 
-                entity.Property(e => e.StartDate)
-                    .HasColumnName("startDate")
-                    .HasColumnType("timestampt");
+                entity.Property(e => e.StartDate).HasColumnName("startDate");
             });
 
             modelBuilder.HasSequence("asocSessionDevice_idDevice_seq", "schemadb");

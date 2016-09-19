@@ -23,20 +23,6 @@ namespace smartsniff_api.Controllers
             context = dbcontext;
         }
 
-        public struct HeatmapPoint
-        {
-            public double lat { get; set; }
-            public double lng { get; set; }
-            public int count { get; set; }
-
-            public HeatmapPoint(double latitude, double longitude, int countValue)
-            {
-                lat = latitude;
-                lng = longitude;
-                count = countValue;
-            }
-        }
-
         // POST api/db/storedata
         [HttpPost("StoreData")]
         public IActionResult Post([FromBody] JObject jsonObject)
@@ -189,6 +175,20 @@ namespace smartsniff_api.Controllers
             return resultLocation;
         }
 
+        public struct HeatmapPoint
+        {
+            public double lat { get; set; }
+            public double lng { get; set; }
+            public int count { get; set; }
+
+            public HeatmapPoint(double latitude, double longitude, int countValue)
+            {
+                lat = latitude;
+                lng = longitude;
+                count = countValue;
+            }
+        }
+
         // GET api/db/getheatmapdata
         [HttpGet("GetHeatmapData")]
         public IActionResult GetHeatmapData()
@@ -205,6 +205,119 @@ namespace smartsniff_api.Controllers
 
             JsonResult heatmapDataJson = Json(heatmapData);
             return heatmapDataJson;
+        }
+
+        public struct StatData
+        {
+            public string label { get; set; }
+            public string value { get; set; }
+
+            public StatData(String dataLabel, int dataValue)
+            {
+                label = dataLabel;
+                value = dataValue.ToString();
+            }
+        }
+
+        public struct StatArray
+        {
+            public StatData[] statDataArray { get; set; }
+
+            public StatArray(StatData[] dataArray)
+            {
+                statDataArray = dataArray;
+            }
+        }
+
+        //GET api/db/getstatisticsdata
+        [HttpGet("GetStatisticsData")]
+        public IActionResult GetStatisticsData()
+        {
+            List<Device> devices = context.Device.AsEnumerable().ToList();
+
+            List<String> manufacturers = new List<String>();
+            List<String> channelWidths = new List<String>();
+            List<int> frequencies = new List<int>();
+            foreach (Device d in devices)
+            {
+                if (manufacturers.Contains(d.Manufacturer)) continue;
+                else
+                {
+                    manufacturers.Add(d.Manufacturer);
+                }
+
+                if (d.Type.Equals("WIFI"))
+                {
+                    if (channelWidths.Contains(d.ChannelWidth)) continue;
+                    else
+                    {
+                        channelWidths.Add(d.ChannelWidth);
+                    }
+
+                    if (getFirstDigit(d.Frequency) == 2 && !frequencies.Contains(2))
+                    {
+                        frequencies.Add(2);
+                    }
+                    else if (getFirstDigit(d.Frequency) == 5 && !frequencies.Contains(5))
+                    {
+                        frequencies.Add(5);
+                    }
+                }
+            }
+
+            //First chart (Manufacturers)
+            StatData[] manufacturerData = new StatData[manufacturers.Count];
+            foreach(String manufacturer in manufacturers)
+            {
+                var count = context.Device.Where(o => o.Manufacturer.Equals(manufacturer)).Count();
+
+                manufacturerData[manufacturers.IndexOf(manufacturer)] = new StatData(manufacturer, count);
+            }
+
+            //Second chart (Channel Width)
+            StatData[] channelWidthData = new StatData[channelWidths.Count];
+            foreach(String channelWidth in channelWidths)
+            {
+                var count = context.Device.Where(o => o.ChannelWidth.Equals(channelWidth)).Count();
+
+                channelWidthData[channelWidths.IndexOf(channelWidth)] = new StatData(channelWidth, count);
+            }
+
+            //Third chart (Frequencies)
+            StatData[] frequenciesData = new StatData[frequencies.Count];
+            foreach(int frequency in frequencies)
+            {
+                var count = context.Device.Where(o => getFirstDigit(o.Frequency) == frequency).Count();
+
+                if(frequency == 2)
+                {
+                    frequenciesData[frequencies.IndexOf(frequency)] = new StatData("2,4 GHz", count);
+                }else if(frequency == 5)
+                {
+                    frequenciesData[frequencies.IndexOf(frequency)] = new StatData("5 GHz", count);
+                }
+                
+            }
+
+
+            StatArray[] statisticsArray = new StatArray[3];
+            statisticsArray[0] = new StatArray(manufacturerData);
+            statisticsArray[1] = new StatArray(channelWidthData);
+            statisticsArray[2] = new StatArray(frequenciesData);
+
+            JsonResult statisticsDataJson = Json(statisticsArray);
+            return statisticsDataJson;
+        }
+
+        public int getFirstDigit(short? number)
+        {
+            int r = (Int16)number;
+            while (r >= 10)
+            {
+                r /= 10;
+            }
+
+            return r;
         }
     }
 

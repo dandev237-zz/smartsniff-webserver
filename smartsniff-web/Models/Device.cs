@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace smartsniff_web.Models
 {
@@ -15,6 +16,9 @@ namespace smartsniff_web.Models
         public string Manufacturer { get; set; }
         public string Characteristics { get; set; }
         public string Type { get; set; }
+        public string ChannelWidth { get; set; }
+        public short? Frequency { get; set; }
+        public short? SignalIntensity { get; set; }
 
         public virtual ICollection<AsocSessionDevice> AsocSessionDevice { get; set; }
 

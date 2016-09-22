@@ -1,0 +1,73 @@
+﻿body{
+    margin: 0px;
+    background-color: #DDD1B5;
+}
+
+html, body, #map-container, #stats-container {
+    height: 100%;
+}
+
+#map-container, #stats-container {
+    margin-top: 50px;
+}
+
+#map {
+    height: 75%;
+    width: 75%;
+}
+
+#manufacturer-chart-container, #frequencies-chart-container, #dates-chart-container, #channelWidth-chart-container, #bluetoothSubtypes-chart-container {
+    width: 700px;
+    height: 700px;
+}
+
+#map, #manufacturer-chart-container, #frequencies-chart-container, #dates-chart-container, #channelWidth-chart-container, #bluetoothSubtypes-chart-container {
+    margin: auto;
+}
+
+ul.navbar {
+    width: 100%;
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: #333;
+}
+
+    ul.navbar li {
+        float: left;
+    }
+
+        ul.navbar li a {
+            display: block;
+            color: white;
+            text-align: center;
+            padding: 14px 16px;
+            text-decoration: none;
+        }
+
+        ul.navbar li.right a:hover:not(.active) {
+            background-color: #111;
+        }
+
+        ul.navbar li a.active {
+            background-color: #4CAF50;
+        }
+
+        ul.navbar li.left {
+            float: left;
+        }
+
+        ul.navbar li.right {
+            float: right;
+        }
+
+#stats-container {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#manufacturer-chart-container, #channelWidth-chart-container, #frequencies-chart-container,
+#dates-chart-container, #bluetoothSubtypes-chart-container {
+    border: 10px;
+}

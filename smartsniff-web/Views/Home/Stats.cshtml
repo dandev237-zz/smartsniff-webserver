@@ -7,25 +7,44 @@
 <head>
     <meta charset="utf-8" />
     <title> SmartSniff - Statistics</title>
+    <!-- jquery -->
     <script type="text/javascript" src="~/js/jquery-3.1.0.min.js"></script>
+    <!-- fusioncharts -->
     <script type="text/javascript" src="~/js/fusioncharts.js"></script>
     <script type="text/javascript" src="~/js/fusioncharts.charts.js"></script>
     <script type="text/javascript" src="~/js/fusioncharts-jquery-plugin.min.js"></script>
+    <!-- css stylesheet -->
+    <link rel="stylesheet" type="text/css" href="~/css/main.css" />
 </head>
 <body>
-    <div id="manufacturer-chart-container"></div>
-    <div id="channelWidth-chart-container"></div>
-    <div id="frequencies-chart-container"></div>
+    <div id="navbar-container">
+        <ul class="navbar">
+            <li class="left"><a>SmartSniff</a></li>
+            <li class="right"><a href="~/Views/Home/About.cshtml">About</a></li>
+            <li class="right"><a class="active" href="~/home/stats">Statistics</a></li>
+            <li class="right"><a href="~/">Home</a></li>
+        </ul>
+    </div>
+
+    <div id="stats-container">
+        <div id="dates-chart-container"></div>
+        <div id="manufacturer-chart-container"></div>
+        <div id="channelWidth-chart-container"></div>
+        <div id="frequencies-chart-container"></div>
+        <div id="bluetoothSubtypes-chart-container"></div>
+    </div>
+
 
     <script>
-        //Heatmap points object
         var manufacturerData = [];
         var channelWidthData = [];
         var frequenciesData = [];
+        var datesData = [];
+        var bluetoothSubtypesData = [];
 
         $(document).ready(function () {
             $.ajax({
-                url: 'http://localhost:5001/api/db/getstatisticsdata',
+                url: '/api/db/getstatisticsdata',
                 type: 'GET',
                 dataType: "json",
                 cache: false, //GET request are cached by browsers
@@ -35,7 +54,7 @@
 
                 for (i = 0; i < response.length; i++) {
                     var data = response[i];
-                    
+
                     for (j = 0; j < data.statDataArray.length; j++) {
                         var entry = {
                             label: data.statDataArray[j].label,
@@ -45,6 +64,8 @@
                         if (i == 0) manufacturerData.push(entry);
                         else if (i == 1) channelWidthData.push(entry);
                         else if (i == 2) frequenciesData.push(entry);
+                        else if (i == 3) datesData.push(entry);
+                        else if (i == 4) bluetoothSubtypesData.push(entry);
                     }
                 }
 
@@ -152,12 +173,82 @@
                         "data": frequenciesData
                     }
                 });
+
+                $("#dates-chart-container").insertFusionCharts({
+                    type: 'bar2d',
+                    renderAt: 'dates-chart-container',
+                    width: '700',
+                    height: '700',
+                    dataFormat: 'json',
+                    dataSource: {
+                        "chart": {
+                            "caption": "Daily devices detected",
+                            "subCaption": "All data",
+                            "yAxisName": "Number of devices",
+                            "paletteColors": "#0075c2",
+                            "bgColor": "#ffffff",
+                            "showBorder": "1",
+                            "showCanvasBorder": "1",
+                            "usePlotGradientColor": "0",
+                            "plotBorderAlpha": "10",
+                            "placeValuesInside": "1",
+                            "valueFontColor": "#ffffff",
+                            "showAxisLines": "1",
+                            "axisLineAlpha": "25",
+                            "divLineAlpha": "10",
+                            "alignCaptionWithCanvas": "0",
+                            "showAlternateVGridColor": "0",
+                            "captionFontSize": "14",
+                            "subcaptionFontSize": "14",
+                            "subcaptionFontBold": "0",
+                            "toolTipColor": "#ffffff",
+                            "toolTipBorderThickness": "0",
+                            "toolTipBgColor": "#000000",
+                            "toolTipBgAlpha": "80",
+                            "toolTipBorderRadius": "2",
+                            "toolTipPadding": "5"
+                        },
+
+                        "data": datesData
+                    }
+                });
+
+                $("#bluetoothSubtypes-chart-container").insertFusionCharts({
+                    type: 'doughnut2d',
+                    renderAt: 'bluetoothSubtypes-chart-container',
+                    width: '700',
+                    height: '700',
+                    dataFormat: 'json',
+                    dataSource: {
+                        "chart": {
+                            "caption": "Detected Bluetooth devices by type",
+                            "subCaption": "All data",
+                            "usePlotGradientColor": 1,
+                            "plotGradientColor": "#ffffff",
+                            "bgColor": "#ffffff",
+                            "showBorder": "1",
+                            "use3DLighting": "0",
+                            "showShadow": "0",
+                            "enableSmartLabels": "1",
+                            "startingAngle": "310",
+                            "showLabels": "0",
+                            "showPercentValues": "1",
+                            "showLegend": "1",
+                            "legendShadow": "1",
+                            "legendBorderAlpha": "1",
+                            "centerLabel": "$label: $value",
+                            "centerLabelBold": "1",
+                            "showTooltip": "0",
+                            "decimals": "0",
+                            "captionFontSize": "14",
+                            "subcaptionFontSize": "14",
+                            "subcaptionFontBold": "0"
+                        },
+                        "data": bluetoothSubtypesData
+                    }
+                });
             });
-
-            
-
-            
-    })
+        })
     </script>
 </body>
 </html>

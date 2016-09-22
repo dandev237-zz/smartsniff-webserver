@@ -5,6 +5,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>
         SmartSniff - Heatmap
     </title>
@@ -20,24 +21,28 @@
     <script src="~/js/heatmap.min.js"></script>
     <!-- leaflet.heat js -->
     <script src="~/js/leaflet-heatmap.js"></script>
-    <style>
-        body {
-            padding: 0;
-            margin: 0;
-        }
-
-        html, body, #map {
-            height: 100%;
-        }
-    </style>
+    <!-- css stylesheet -->
+    <link rel="stylesheet" type="text/css" href="~/css/main.css" />
 </head>
 <body>
-    <div id="map">
+
+    <div id="navbar-container">
+        <ul class="navbar">
+            <li class="left"><a>SmartSniff</a></li>
+            <li class="right"><a href="~/Views/Home/About.cshtml">About</a></li>
+            <li class="right"><a href="~/home/stats">Statistics</a></li>
+            <li class="right"><a class="active" href="~/">Home</a></li>
+        </ul>
     </div>
+
+    <div id="map-container">
+        <div id="map"></div>
+    </div>
+
     <script>
         $(document).ready(function () {
             $.ajax({
-                url: 'http://localhost:5001/api/db/getheatmapdata',
+                url: '/api/db/getheatmapdata',
                 type: 'GET',
                 dataType: "json",
                 cache: false, //GET request are cached by browsers

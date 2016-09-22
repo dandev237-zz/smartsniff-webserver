@@ -198,7 +198,7 @@ namespace smartsniff_api.Controllers
             HeatmapPoint[] heatmapData = new HeatmapPoint[locations.Count];
             foreach (Location loc in locations)
             {
-                var count = context.AsocSessionDevice.Where(o => o.IdLocation == loc.Id).Count();
+                var count = context.AsocSessionDevice.Where(o => o.IdLocation == loc.Id && o.device.Type.Equals("WIFI")).Count();
 
                 heatmapData[locations.IndexOf(loc)] = new HeatmapPoint(loc.Coordinates.X, loc.Coordinates.Y, count);
             }
@@ -234,10 +234,13 @@ namespace smartsniff_api.Controllers
         public IActionResult GetStatisticsData()
         {
             List<Device> devices = context.Device.AsEnumerable().ToList();
+            List<Session> sessions = context.Session.AsEnumerable().ToList();
 
             List<String> manufacturers = new List<String>();
             List<String> channelWidths = new List<String>();
             List<int> frequencies = new List<int>();
+            List<String> bluetoothSubtypes = new List<String>();
+
             foreach (Device d in devices)
             {
                 if (manufacturers.Contains(d.Manufacturer)) continue;
@@ -263,15 +266,37 @@ namespace smartsniff_api.Controllers
                         frequencies.Add(5);
                     }
                 }
+                else //Bluetooth
+                {
+                    if (bluetoothSubtypes.Contains(d.Characteristics)) continue;
+                    else
+                    {
+                        bluetoothSubtypes.Add(d.Characteristics);
+                    }
+                }
+            }
+
+            List<String> dates = new List<String>();
+            foreach (Session s in sessions)
+            {
+                String sessionDate = s.StartDate.Date.ToString("dd/M/yyyy");
+
+                if (dates.Contains(sessionDate)) continue;
+                else
+                {
+                    dates.Add(sessionDate);
+                }
             }
 
             //First chart (Manufacturers)
+            if (manufacturers.Contains("NotFound")) manufacturers.Remove("NotFound");
+
             StatData[] manufacturerData = new StatData[manufacturers.Count];
             foreach(String manufacturer in manufacturers)
             {
-                var count = context.Device.Where(o => o.Manufacturer.Equals(manufacturer)).Count();
+                    var count = context.Device.Where(o => o.Manufacturer.Equals(manufacturer)).Count();
 
-                manufacturerData[manufacturers.IndexOf(manufacturer)] = new StatData(manufacturer, count);
+                    manufacturerData[manufacturers.IndexOf(manufacturer)] = new StatData(manufacturer, count);
             }
 
             //Second chart (Channel Width)
@@ -296,14 +321,33 @@ namespace smartsniff_api.Controllers
                 {
                     frequenciesData[frequencies.IndexOf(frequency)] = new StatData("5 GHz", count);
                 }
-                
+            }
+
+            //Fourth chart (Devices by date)
+            StatData[] datesData = new StatData[dates.Count];
+            foreach(String date in dates)
+            {
+                var count = context.AsocSessionDevice.Where(o => o.session.StartDate.Date.ToString("dd/M/yyyy").Equals(date)).Count();
+
+                datesData[dates.IndexOf(date)] = new StatData(date, count);
+            }
+
+            //Fifth chart (Bluetooth subtypes)
+            StatData[] bluetoothSubtypesData = new StatData[bluetoothSubtypes.Count];
+            foreach(String bluetoothSubtype in bluetoothSubtypes)
+            {
+                var count = context.Device.Where(o => o.Characteristics.Equals(bluetoothSubtype)).Count();
+
+                bluetoothSubtypesData[bluetoothSubtypes.IndexOf(bluetoothSubtype)] = new StatData(bluetoothSubtype, count);
             }
 
 
-            StatArray[] statisticsArray = new StatArray[3];
+            StatArray[] statisticsArray = new StatArray[5];
             statisticsArray[0] = new StatArray(manufacturerData);
             statisticsArray[1] = new StatArray(channelWidthData);
             statisticsArray[2] = new StatArray(frequenciesData);
+            statisticsArray[3] = new StatArray(datesData);
+            statisticsArray[4] = new StatArray(bluetoothSubtypesData);
 
             JsonResult statisticsDataJson = Json(statisticsArray);
             return statisticsDataJson;

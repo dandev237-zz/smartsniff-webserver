@@ -11,7 +11,7 @@ namespace smartsniff_web
     {
         public static void Main(string[] args)
         {
-            string[] urls = new string[] { "http://localhost:5001" };
+            string[] urls = new string[] { "http://localhost:5001", "http://192.168.1.199:5001" };
 
             var host = new WebHostBuilder()
                 .UseKestrel()

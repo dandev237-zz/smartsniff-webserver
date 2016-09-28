@@ -23,6 +23,8 @@
     <script src="~/js/leaflet-heatmap.js"></script>
     <!-- css stylesheet -->
     <link rel="stylesheet" type="text/css" href="~/css/main.css" />
+    <!-- google web font -->
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
 </head>
 <body>
 
@@ -33,6 +35,12 @@
             <li class="right"><a href="~/home/stats">Statistics</a></li>
             <li class="right"><a class="active" href="~/">Home</a></li>
         </ul>
+    </div>
+
+    <div id="map-title">
+        <h2 style="text-align: center;">Detected devices heatmap</h2>
+        <a style="text-align: center; display: table-cell; vertical-align: middle;">Below is a heatmap that displays the detected devices by the mobile application which are stored in the main database. The hotter the color, the higher the density
+        of devices in an area.</a>
     </div>
 
     <div id="map-container">

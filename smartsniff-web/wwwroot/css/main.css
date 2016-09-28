@@ -1,6 +1,7 @@
 ﻿body{
     margin: 0px;
     background-color: #DDD1B5;
+    font-family: 'Open Sans', sans-serif;
 }
 
 html, body, #map-container, #stats-container {
@@ -11,14 +12,21 @@ html, body, #map-container, #stats-container {
     margin-top: 50px;
 }
 
+#map-title {
+    margin-left: auto;
+    margin-right: auto;
+    width:70%;
+}
+
 #map {
+    border: 1px solid black;
     height: 75%;
     width: 75%;
 }
 
 #manufacturer-chart-container, #frequencies-chart-container, #dates-chart-container, #channelWidth-chart-container, #bluetoothSubtypes-chart-container {
-    width: 700px;
-    height: 700px;
+    width: 900px;
+    height: 900px;
 }
 
 #map, #manufacturer-chart-container, #frequencies-chart-container, #dates-chart-container, #channelWidth-chart-container, #bluetoothSubtypes-chart-container {

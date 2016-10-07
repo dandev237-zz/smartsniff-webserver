@@ -17,6 +17,14 @@
     <link rel="stylesheet" type="text/css" href="~/css/main.css" />
     <!-- google web font -->
     <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+    <!-- bootstrap -->
+    <link rel="stylesheet" type="text/css" href="~/css/bootstrap.css" />
+    <!-- moment.js -->
+    <script type="text/javascript" src="~/js/moment-with-locales.js"></script>
+    <!-- daterangepicker css -->
+    <link rel="stylesheet" type="text/css" href="~/css/daterangepicker.css" />
+    <!-- daterangepicker js -->
+    <script type="text/javascript" src="~/js/daterangepicker.js"></script>
 </head>
 <body>
     <div id="navbar-container">
@@ -29,6 +37,212 @@
     </div>
 
     <div id="stats-container">
+        <div id="datepicker">
+            <b>Time range</b>
+            <input type="text" name="daterange" />
+
+            <script type="text/javascript">
+            $(function () {
+                $('input[name="daterange"]').daterangepicker({
+                    "locale": {
+                        "format": "DD/MM/YYYY",
+                        "separator": " - ",
+                        "applyLabel": "Apply",
+                        "cancelLabel": "Cancel",
+                        "fromLabel": "From",
+                        "toLabel": "To",
+                        "customRangeLabel": "Custom",
+                        "weekLabel": "W",
+                        "daysOfWeek": [
+                            "Su",
+                            "Mo",
+                            "Tu",
+                            "We",
+                            "Th",
+                            "Fr",
+                            "Sa"
+                        ],
+                        "monthNames": [
+                            "January",
+                            "February",
+                            "March",
+                            "April",
+                            "May",
+                            "June",
+                            "July",
+                            "August",
+                            "September",
+                            "October",
+                            "November",
+                            "December"
+                        ],
+                        "firstDay": 1
+                    },
+                    "showCustomRangeLabel": false,
+                    "alwaysShowCalendars": true,
+                    "startDate": moment().subtract(1, 'M'),
+                    "endDate": moment()
+                }, function (start, end, label) {
+                    //Apply button pressed
+
+                    // GET: api/db/getstatisticsdata/01-02-1234/01-02-5678
+                    $.getJSON("/api/db/getstatisticsdata/" + start.toISOString() + "/" + end.toISOString(), function (json, status) {
+                        if (status == "success") {
+                            var manufacturerChart = FusionCharts('manufacturer-chart');
+                            manufacturerChart.setJSONData({
+                                "chart": {
+                                    "caption": "Found devices by manufacturer",
+                                    "subCaption": start.format('L').toString() + " - " + end.format('L').toString(),
+                                    "usePlotGradientColor": 1,
+                                    "plotGradientColor": "#ffffff",
+                                    "bgColor": "#ffffff",
+                                    "showBorder": "1",
+                                    "use3DLighting": "0",
+                                    "showShadow": "0",
+                                    "enableSmartLabels": "1",
+                                    "startingAngle": "310",
+                                    "showLabels": "0",
+                                    "showPercentValues": "1",
+                                    "showLegend": "1",
+                                    "legendShadow": "1",
+                                    "legendBorderAlpha": "1",
+                                    "centerLabel": "$label: $value",
+                                    "centerLabelBold": "1",
+                                    "showTooltip": "0",
+                                    "decimals": "0",
+                                    "captionFontSize": "14",
+                                    "subcaptionFontSize": "14",
+                                    "subcaptionFontBold": "0"
+                                },
+                                "data": json[0]['statDataArray']
+                            });
+
+                            var channelWidthChart = FusionCharts('channelWidth-chart');
+                            channelWidthChart.setJSONData({
+                                "chart": {
+                                    "caption": "Most commonly used channel width",
+                                    "subCaption": start.format('L').toString() + " - " + end.format('L').toString(),
+                                    "usePlotGradientColor": 1,
+                                    "plotGradientColor": "#ffffff",
+                                    "bgColor": "#ffffff",
+                                    "showBorder": "1",
+                                    "use3DLighting": "0",
+                                    "showShadow": "0",
+                                    "enableSmartLabels": "1",
+                                    "startingAngle": "310",
+                                    "showLabels": "1",
+                                    "showPercentValues": "1",
+                                    "showLegend": "1",
+                                    "legendShadow": "1",
+                                    "legendBorderAlpha": "1",
+                                    "centerLabel": "$label: $value",
+                                    "centerLabelBold": "1",
+                                    "showTooltip": "0",
+                                    "decimals": "0",
+                                    "captionFontSize": "14",
+                                    "subcaptionFontSize": "14",
+                                    "subcaptionFontBold": "0"
+                                },
+                                "data": json[1]['statDataArray']
+                            });
+
+                            var frequenciesChart = FusionCharts('frequencies-chart');
+                            frequenciesChart.setJSONData({
+                                "chart": {
+                                    "caption": "Most commonly used frequency band",
+                                    "subCaption": start.format('L').toString() + " - " + end.format('L').toString(),
+                                    "usePlotGradientColor": 1,
+                                    "plotGradientColor": "#ffffff",
+                                    "bgColor": "#ffffff",
+                                    "showBorder": "1",
+                                    "use3DLighting": "0",
+                                    "showShadow": "0",
+                                    "enableSmartLabels": "1",
+                                    "startingAngle": "310",
+                                    "showLabels": "0",
+                                    "showPercentValues": "1",
+                                    "showLegend": "1",
+                                    "legendShadow": "1",
+                                    "legendBorderAlpha": "1",
+                                    "centerLabel": "$label: $value",
+                                    "centerLabelBold": "1",
+                                    "showTooltip": "0",
+                                    "decimals": "0",
+                                    "captionFontSize": "14",
+                                    "subcaptionFontSize": "14",
+                                    "subcaptionFontBold": "0"
+                                },
+                                "data": json[2]['statDataArray']
+                            });
+
+                            var datesChart = FusionCharts('dates-chart');
+                            datesChart.setJSONData({
+                                "chart": {
+                                    "caption": "Daily devices detected",
+                                    "subCaption": start.format('L').toString() + " - " + end.format('L').toString(),
+                                    "yAxisName": "Number of devices",
+                                    "paletteColors": "#0075c2",
+                                    "bgColor": "#ffffff",
+                                    "showBorder": "1",
+                                    "showCanvasBorder": "1",
+                                    "usePlotGradientColor": "0",
+                                    "plotBorderAlpha": "10",
+                                    "placeValuesInside": "1",
+                                    "valueFontColor": "#ffffff",
+                                    "showAxisLines": "1",
+                                    "axisLineAlpha": "25",
+                                    "divLineAlpha": "10",
+                                    "alignCaptionWithCanvas": "0",
+                                    "showAlternateVGridColor": "0",
+                                    "captionFontSize": "14",
+                                    "subcaptionFontSize": "14",
+                                    "subcaptionFontBold": "0",
+                                    "toolTipColor": "#ffffff",
+                                    "toolTipBorderThickness": "0",
+                                    "toolTipBgColor": "#000000",
+                                    "toolTipBgAlpha": "80",
+                                    "toolTipBorderRadius": "2",
+                                    "toolTipPadding": "5"
+                                },
+
+                                "data": json[3]['statDataArray']
+                            });
+
+                            var bluetoothSubtypesChart = FusionCharts('bluetoothSubtypes-chart');
+                            bluetoothSubtypesChart.setJSONData({
+                                "chart": {
+                                    "caption": "Detected Bluetooth devices by type",
+                                    "subCaption": start.format('L').toString() + " - " + end.format('L').toString(),
+                                    "usePlotGradientColor": 1,
+                                    "plotGradientColor": "#ffffff",
+                                    "bgColor": "#ffffff",
+                                    "showBorder": "1",
+                                    "use3DLighting": "0",
+                                    "showShadow": "0",
+                                    "enableSmartLabels": "1",
+                                    "startingAngle": "310",
+                                    "showLabels": "0",
+                                    "showPercentValues": "1",
+                                    "showLegend": "1",
+                                    "legendShadow": "1",
+                                    "legendBorderAlpha": "1",
+                                    "centerLabel": "$label: $value",
+                                    "centerLabelBold": "1",
+                                    "showTooltip": "0",
+                                    "decimals": "0",
+                                    "captionFontSize": "14",
+                                    "subcaptionFontSize": "14",
+                                    "subcaptionFontBold": "0"
+                                },
+                                "data": json[4]['statDataArray']
+
+                            });
+                        }
+                    });
+                });
+            });
+            </script>
+        </div>
         <div id="dates-chart-container"></div>
         <div id="manufacturer-chart-container"></div>
         <div id="channelWidth-chart-container"></div>
@@ -45,8 +259,10 @@
         var bluetoothSubtypesData = [];
 
         $(document).ready(function () {
+            var today = moment();
+            var lastMonth = moment().subtract(1, 'M');
             $.ajax({
-                url: '/api/db/getstatisticsdata',
+                url: '/api/db/getstatisticsdata/' + lastMonth.toISOString() + '/' + today.toISOString(),
                 type: 'GET',
                 dataType: "json",
                 cache: false, //GET request are cached by browsers
@@ -72,6 +288,7 @@
                 }
 
                 $("#manufacturer-chart-container").insertFusionCharts({
+                    id: 'manufacturer-chart',
                     type: 'doughnut2d',
                     renderAt: 'manufacturer-chart-container',
                     width: '900',
@@ -80,7 +297,7 @@
                     dataSource: {
                         "chart": {
                             "caption": "Found devices by manufacturer",
-                            "subCaption": "All data",
+                            "subCaption": lastMonth.format('L').toString() + " - " + today.format('L').toString(),
                             "usePlotGradientColor": 1,
                             "plotGradientColor": "#ffffff",
                             "bgColor": "#ffffff",
@@ -107,6 +324,7 @@
                 });
 
                 $("#channelWidth-chart-container").insertFusionCharts({
+                    id: 'channelWidth-chart',
                     type: 'doughnut2d',
                     renderAt: 'channelWidth-chart-container',
                     width: '900',
@@ -115,7 +333,7 @@
                     dataSource: {
                         "chart": {
                             "caption": "Most commonly used channel width",
-                            "subCaption": "All data",
+                            "subCaption": lastMonth.format('L').toString() + " - " + today.format('L').toString(),
                             "usePlotGradientColor": 1,
                             "plotGradientColor": "#ffffff",
                             "bgColor": "#ffffff",
@@ -142,6 +360,7 @@
                 });
 
                 $("#frequencies-chart-container").insertFusionCharts({
+                    id: 'frequencies-chart',
                     type: 'doughnut2d',
                     renderAt: 'frequencies-chart-container',
                     width: '900',
@@ -150,7 +369,7 @@
                     dataSource: {
                         "chart": {
                             "caption": "Most commonly used frequency band",
-                            "subCaption": "All data",
+                            "subCaption": lastMonth.format('L').toString() + " - " + today.format('L').toString(),
                             "usePlotGradientColor": 1,
                             "plotGradientColor": "#ffffff",
                             "bgColor": "#ffffff",
@@ -177,6 +396,7 @@
                 });
 
                 $("#dates-chart-container").insertFusionCharts({
+                    id: 'dates-chart',
                     type: 'bar2d',
                     renderAt: 'dates-chart-container',
                     width: '900',
@@ -185,7 +405,7 @@
                     dataSource: {
                         "chart": {
                             "caption": "Daily devices detected",
-                            "subCaption": "All data",
+                            "subCaption": lastMonth.format('L').toString() + " - " + today.format('L').toString(),
                             "yAxisName": "Number of devices",
                             "paletteColors": "#0075c2",
                             "bgColor": "#ffffff",
@@ -216,6 +436,7 @@
                 });
 
                 $("#bluetoothSubtypes-chart-container").insertFusionCharts({
+                    id: 'bluetoothSubtypes-chart',
                     type: 'doughnut2d',
                     renderAt: 'bluetoothSubtypes-chart-container',
                     width: '900',
@@ -224,7 +445,7 @@
                     dataSource: {
                         "chart": {
                             "caption": "Detected Bluetooth devices by type",
-                            "subCaption": "All data",
+                            "subCaption": lastMonth.format('L').toString() + " - " + today.format('L').toString(),
                             "usePlotGradientColor": 1,
                             "plotGradientColor": "#ffffff",
                             "bgColor": "#ffffff",

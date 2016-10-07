@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
@@ -7,6 +8,7 @@ using smartsniff_web;
 using smartsniff_web.Models;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 
 // For more information on enabling Web API for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
@@ -230,16 +232,34 @@ namespace smartsniff_api.Controllers
         }
 
         //GET api/db/getstatisticsdata
-        [HttpGet("GetStatisticsData")]
-        public IActionResult GetStatisticsData()
+        [HttpGet("GetStatisticsData/{startDate?}/{endDate?}")]
+        public IActionResult GetStatisticsData(DateTime? startDate = null, DateTime? endDate = null)
         {
-            List<Device> devices = context.Device.AsEnumerable().ToList();
-            List<Session> sessions = context.Session.AsEnumerable().ToList();
+            List<Session> sessions = context.Session.Include(a => a.AsocSessionDevice).AsEnumerable().ToList();
+            List<Device> devices = new List<Device>();
 
             List<String> manufacturers = new List<String>();
             List<String> channelWidths = new List<String>();
             List<int> frequencies = new List<int>();
             List<String> bluetoothSubtypes = new List<String>();
+
+            List<String> dates = new List<String>();
+            foreach (Session s in sessions)
+            {
+                String sessionDate = s.StartDate.Date.ToString("dd/M/yyyy");
+
+                if (dates.Contains(sessionDate) || !DateInRange(sessionDate, startDate, endDate)) continue;
+                else
+                {
+                    dates.Add(sessionDate);
+                    foreach(AsocSessionDevice a in s.AsocSessionDevice)
+                    {
+                        Device d = context.Device.Where(o => o.Id == a.IdDevice).First();
+                        if (!devices.Contains(d)) devices.Add(d);
+                    }
+                }
+            }
+            dates.Sort();
 
             foreach (Device d in devices)
             {
@@ -257,11 +277,11 @@ namespace smartsniff_api.Controllers
                         channelWidths.Add(d.ChannelWidth);
                     }
 
-                    if (getFirstDigit(d.Frequency) == 2 && !frequencies.Contains(2))
+                    if (GetFirstDigit(d.Frequency) == 2 && !frequencies.Contains(2))
                     {
                         frequencies.Add(2);
                     }
-                    else if (getFirstDigit(d.Frequency) == 5 && !frequencies.Contains(5))
+                    else if (GetFirstDigit(d.Frequency) == 5 && !frequencies.Contains(5))
                     {
                         frequencies.Add(5);
                     }
@@ -276,17 +296,7 @@ namespace smartsniff_api.Controllers
                 }
             }
 
-            List<String> dates = new List<String>();
-            foreach (Session s in sessions)
-            {
-                String sessionDate = s.StartDate.Date.ToString("dd/M/yyyy");
-
-                if (dates.Contains(sessionDate)) continue;
-                else
-                {
-                    dates.Add(sessionDate);
-                }
-            }
+            
 
             //First chart (Manufacturers)
             if (manufacturers.Contains("NotFound")) manufacturers.Remove("NotFound");
@@ -312,7 +322,7 @@ namespace smartsniff_api.Controllers
             StatData[] frequenciesData = new StatData[frequencies.Count];
             foreach(int frequency in frequencies)
             {
-                var count = context.Device.Where(o => getFirstDigit(o.Frequency) == frequency).Count();
+                var count = context.Device.Where(o => GetFirstDigit(o.Frequency) == frequency).Count();
 
                 if(frequency == 2)
                 {
@@ -353,7 +363,7 @@ namespace smartsniff_api.Controllers
             return statisticsDataJson;
         }
 
-        public int getFirstDigit(short? number)
+        public int GetFirstDigit(short? number)
         {
             int r = (Int16)number;
             while (r >= 10)
@@ -362,6 +372,16 @@ namespace smartsniff_api.Controllers
             }
 
             return r;
+        }
+
+        public bool DateInRange(String date, DateTime? start, DateTime? end)
+        {
+            DateTime parsedDate = DateTime.ParseExact(date, "dd/M/yyyy", CultureInfo.InvariantCulture);
+
+            if (start != null && end != null)
+                return start <= parsedDate && end >= parsedDate;
+            else
+                return true;
         }
     }
 

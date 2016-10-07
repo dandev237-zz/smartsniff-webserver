@@ -24,6 +24,21 @@ html, body, #map-container, #stats-container {
     width: 75%;
 }
 
+#datepicker {
+    text-align: center;
+    vertical-align: middle;
+}
+
+input[type="text"] {
+    display: block;
+    margin-bottom: 15px;
+    margin-top: 0px;
+    margin-left: auto;
+    margin-right: auto;
+    font-size: 115%;
+    text-align: center;
+}
+
 #manufacturer-chart-container, #frequencies-chart-container, #dates-chart-container, #channelWidth-chart-container, #bluetoothSubtypes-chart-container {
     width: 900px;
     height: 900px;

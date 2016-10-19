@@ -24,9 +24,19 @@ html, body, #map-container, #stats-container {
     width: 75%;
 }
 
-#datepicker {
+#datepicker, .flip-dates, .flip-manufacturer, .flip-channelWidth, .flip-frequencies, .flip-bluetooth {
     text-align: center;
     vertical-align: middle;
+    margin-top: 7px;
+    margin-bottom: 7px;
+}
+
+.flip-dates, .flip-manufacturer, .flip-channelWidth, .flip-frequencies, .flip-bluetooth{
+    display: none;
+}
+
+.custom-button{
+    width: 60%;
 }
 
 input[type="text"] {
@@ -40,6 +50,7 @@ input[type="text"] {
 }
 
 #manufacturer-chart-container, #frequencies-chart-container, #dates-chart-container, #channelWidth-chart-container, #bluetoothSubtypes-chart-container {
+    display: none;
     width: 900px;
     height: 900px;
 }

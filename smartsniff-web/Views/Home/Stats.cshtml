@@ -25,6 +25,10 @@
     <link rel="stylesheet" type="text/css" href="~/css/daterangepicker.css" />
     <!-- daterangepicker js -->
     <script type="text/javascript" src="~/js/daterangepicker.js"></script>
+
+    <script type="text/javascript">
+        window.JSONdata = ["", "", "", "", ""];
+    </script>
 </head>
 <body>
     <div id="navbar-container">
@@ -38,12 +42,12 @@
 
     <div id="stats-container">
         <div id="datepicker">
-            <b>Time range</b>
+            <b id="datepicker-text">Please select a time range</b>
             <input type="text" name="daterange" />
-
             <script type="text/javascript">
             $(function () {
                 $('input[name="daterange"]').daterangepicker({
+                    "autoUpdateInput": false,
                     "locale": {
                         "format": "DD/MM/YYYY",
                         "separator": " - ",
@@ -79,11 +83,19 @@
                         "firstDay": 1
                     },
                     "showCustomRangeLabel": false,
-                    "alwaysShowCalendars": true,
-                    "startDate": moment().subtract(1, 'M'),
-                    "endDate": moment()
+                    "alwaysShowCalendars": true
                 }, function (start, end, label) {
                     //Apply button pressed
+
+                    //Display check
+                    if (!$(".flip-dates").is(":visible")) {
+                        $("#datepicker-text").html($("#datepicker-text").html().replace("Please select a time", "Time"));
+                        $(".flip-dates").toggle();
+                        $(".flip-manufacturer").toggle();
+                        $(".flip-channelWidth").toggle();
+                        $(".flip-frequencies").toggle();
+                        $(".flip-bluetooth").toggle();
+                    };
 
                     // GET: api/db/getstatisticsdata/01-02-1234/01-02-5678
                     $.getJSON("/api/db/getstatisticsdata/" + start.toISOString() + "/" + end.toISOString(), function (json, status) {
@@ -92,7 +104,7 @@
                             manufacturerChart.setJSONData({
                                 "chart": {
                                     "caption": "Found devices by manufacturer",
-                                    "subCaption": start.format('L').toString() + " - " + end.format('L').toString(),
+                                    "subCaption": start.format("DD/MM/YYYY").toString() + " - " + end.format("DD/MM/YYYY").toString(),
                                     "usePlotGradientColor": 1,
                                     "plotGradientColor": "#ffffff",
                                     "bgColor": "#ffffff",
@@ -116,12 +128,13 @@
                                 },
                                 "data": json[0]['statDataArray']
                             });
+                            window.JSONdata[0] = manufacturerChart.getJSONData();
 
                             var channelWidthChart = FusionCharts('channelWidth-chart');
                             channelWidthChart.setJSONData({
                                 "chart": {
                                     "caption": "Most commonly used channel width",
-                                    "subCaption": start.format('L').toString() + " - " + end.format('L').toString(),
+                                    "subCaption": start.format("DD/MM/YYYY").toString() + " - " + end.format("DD/MM/YYYY").toString(),
                                     "usePlotGradientColor": 1,
                                     "plotGradientColor": "#ffffff",
                                     "bgColor": "#ffffff",
@@ -145,12 +158,13 @@
                                 },
                                 "data": json[1]['statDataArray']
                             });
+                            window.JSONdata[1] = channelWidthChart.getJSONData();
 
                             var frequenciesChart = FusionCharts('frequencies-chart');
                             frequenciesChart.setJSONData({
                                 "chart": {
                                     "caption": "Most commonly used frequency band",
-                                    "subCaption": start.format('L').toString() + " - " + end.format('L').toString(),
+                                    "subCaption": start.format("DD/MM/YYYY").toString() + " - " + end.format("DD/MM/YYYY").toString(),
                                     "usePlotGradientColor": 1,
                                     "plotGradientColor": "#ffffff",
                                     "bgColor": "#ffffff",
@@ -174,12 +188,13 @@
                                 },
                                 "data": json[2]['statDataArray']
                             });
+                            window.JSONdata[2] = frequenciesChart.getJSONData();
 
                             var datesChart = FusionCharts('dates-chart');
                             datesChart.setJSONData({
                                 "chart": {
                                     "caption": "Daily devices detected",
-                                    "subCaption": start.format('L').toString() + " - " + end.format('L').toString(),
+                                    "subCaption": start.format("DD/MM/YYYY").toString() + " - " + end.format("DD/MM/YYYY").toString(),
                                     "yAxisName": "Number of devices",
                                     "paletteColors": "#0075c2",
                                     "bgColor": "#ffffff",
@@ -207,12 +222,13 @@
 
                                 "data": json[3]['statDataArray']
                             });
+                            window.JSONdata[3] = datesChart.getJSONData();
 
-                            var bluetoothSubtypesChart = FusionCharts('bluetoothSubtypes-chart');
-                            bluetoothSubtypesChart.setJSONData({
+                            var bluetoothChart = FusionCharts('bluetoothSubtypes-chart');
+                            bluetoothChart.setJSONData({
                                 "chart": {
                                     "caption": "Detected Bluetooth devices by type",
-                                    "subCaption": start.format('L').toString() + " - " + end.format('L').toString(),
+                                    "subCaption": start.format("DD/MM/YYYY").toString() + " - " + end.format("DD/MM/YYYY").toString(),
                                     "usePlotGradientColor": 1,
                                     "plotGradientColor": "#ffffff",
                                     "bgColor": "#ffffff",
@@ -237,16 +253,46 @@
                                 "data": json[4]['statDataArray']
 
                             });
+                            window.JSONdata[4] = bluetoothChart.getJSONData();
                         }
                     });
+                });
+
+                $('input[name="daterange"]').on('apply.daterangepicker', function (ev, picker) {
+                    $(this).val(picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY'));
+                });
+
+                $('input[name="daterange"]').on('cancel.daterangepicker', function (ev, picker) {
+                    $(this).val('');
                 });
             });
             </script>
         </div>
+
+        <div class="flip-dates" style="width: 100%; text-align: center;
+    vertical-align: middle;">    
+            <button type="button" class="btn btn-lg btn-default custom-button">Display chart -  Daily devices detected</button>
+        </div>
         <div id="dates-chart-container"></div>
+
+        <div class="flip-manufacturer" style="width: 100%;">
+            <button type="button" class="btn btn-lg btn-default custom-button">Display chart -  Found devices by manufacturer</button>
+        </div>
         <div id="manufacturer-chart-container"></div>
+
+        <div class="flip-channelWidth" style="width: 100%;">
+            <button type="button" class="btn btn-lg btn-default custom-button">Display chart -  Most commonly used channel width</button>
+        </div>
         <div id="channelWidth-chart-container"></div>
+
+        <div class="flip-frequencies" style="width: 100%;">
+            <button type="button" class="btn btn-lg btn-default custom-button">Display chart -  Most commonly used frequency band</button>
+        </div>
         <div id="frequencies-chart-container"></div>
+
+        <div class="flip-bluetooth" style="width: 100%;">
+            <button type="button" class="btn btn-lg btn-default custom-button">Display chart -  Detected Bluetooth devices by type</button>
+        </div>
         <div id="bluetoothSubtypes-chart-container"></div>
     </div>
 
@@ -259,6 +305,62 @@
         var bluetoothSubtypesData = [];
 
         $(document).ready(function () {
+            var jsonData = "";
+            //Callback function (Chart button)
+            var buttonCallback = function (a, buttonClass, divId, chartId) {
+                a.preventDefault();
+                if ($(divId).is(":visible")) $(buttonClass).html($(buttonClass).html().replace("Hide", "Display"));
+                else $(buttonClass).html($(buttonClass).html().replace("Display", "Hide"));
+                $(divId).slideToggle(400, function () {
+                    var data;
+                    switch (divId) {
+                        case "#dates-chart-container":
+                            data = window.JSONdata[3];
+                            break;
+                        case "#manufacturer-chart-container":
+                            data = window.JSONdata[0];
+                            break;
+                        case "#channelWidth-chart-container":
+                            data = window.JSONdata[1];
+                            break;
+                        case "#frequencies-chart-container":
+                            data = window.JSONdata[2];
+                            break;
+                        case "#bluetoothSubtypes-chart-container":
+                            data = window.JSONdata[4];
+                            break;
+
+                    }
+                    if ($(divId).is(":visible") && data != "") {
+                        FusionCharts(chartId).setJSONData(data);
+                        //data = "";
+                    }
+                });
+                $("html, body").animate({ scrollTop: $(divId).offset().top + $(divId).height() }, 1000);
+            };
+
+            //Chart button functions
+            $(".flip-dates").click(function (a) {
+                buttonCallback(a, ".flip-dates", "#dates-chart-container", "dates-chart");
+            });
+
+            $(".flip-manufacturer").click(function (a) {
+                buttonCallback(a, ".flip-manufacturer", "#manufacturer-chart-container", "manufacturer-chart");
+            });
+
+            $(".flip-channelWidth").click(function (a) {
+                buttonCallback(a, ".flip-channelWidth", "#channelWidth-chart-container", "channelWidth-chart");
+            });
+
+            $(".flip-frequencies").click(function (a) {
+                buttonCallback(a, ".flip-frequencies", "#frequencies-chart-container", "frequencies-chart");
+            });
+
+            $(".flip-bluetooth").click(function (a) {
+                buttonCallback(a, ".flip-bluetooth", "#bluetoothSubtypes-chart-container", "bluetoothSubtypes-chart");
+            });
+
+
             var today = moment();
             var lastMonth = moment().subtract(1, 'M');
             $.ajax({
@@ -297,7 +399,7 @@
                     dataSource: {
                         "chart": {
                             "caption": "Found devices by manufacturer",
-                            "subCaption": lastMonth.format('L').toString() + " - " + today.format('L').toString(),
+                            "subCaption": lastMonth.format("DD/MM/YYYY").toString() + " - " + today.format("DD/MM/YYYY").toString(),
                             "usePlotGradientColor": 1,
                             "plotGradientColor": "#ffffff",
                             "bgColor": "#ffffff",
@@ -318,8 +420,8 @@
                             "captionFontSize": "14",
                             "subcaptionFontSize": "14",
                             "subcaptionFontBold": "0"
-                        },
-                        "data": manufacturerData
+                        }
+                        //"data": manufacturerData
                     }
                 });
 
@@ -333,7 +435,7 @@
                     dataSource: {
                         "chart": {
                             "caption": "Most commonly used channel width",
-                            "subCaption": lastMonth.format('L').toString() + " - " + today.format('L').toString(),
+                            "subCaption": lastMonth.format("DD/MM/YYYY").toString() + " - " + today.format("DD/MM/YYYY").toString(),
                             "usePlotGradientColor": 1,
                             "plotGradientColor": "#ffffff",
                             "bgColor": "#ffffff",
@@ -354,8 +456,8 @@
                             "captionFontSize": "14",
                             "subcaptionFontSize": "14",
                             "subcaptionFontBold": "0"
-                        },
-                        "data": channelWidthData
+                        }
+                        //"data": channelWidthData
                     }
                 });
 
@@ -369,7 +471,7 @@
                     dataSource: {
                         "chart": {
                             "caption": "Most commonly used frequency band",
-                            "subCaption": lastMonth.format('L').toString() + " - " + today.format('L').toString(),
+                            "subCaption": lastMonth.format("DD/MM/YYYY").toString() + " - " + today.format("DD/MM/YYYY").toString(),
                             "usePlotGradientColor": 1,
                             "plotGradientColor": "#ffffff",
                             "bgColor": "#ffffff",
@@ -390,8 +492,8 @@
                             "captionFontSize": "14",
                             "subcaptionFontSize": "14",
                             "subcaptionFontBold": "0"
-                        },
-                        "data": frequenciesData
+                        }
+                        //"data": frequenciesData
                     }
                 });
 
@@ -405,7 +507,7 @@
                     dataSource: {
                         "chart": {
                             "caption": "Daily devices detected",
-                            "subCaption": lastMonth.format('L').toString() + " - " + today.format('L').toString(),
+                            "subCaption": lastMonth.format("DD/MM/YYYY").toString() + " - " + today.format("DD/MM/YYYY").toString(),
                             "yAxisName": "Number of devices",
                             "paletteColors": "#0075c2",
                             "bgColor": "#ffffff",
@@ -429,9 +531,8 @@
                             "toolTipBgAlpha": "80",
                             "toolTipBorderRadius": "2",
                             "toolTipPadding": "5"
-                        },
-
-                        "data": datesData
+                        }
+                        //"data": datesData
                     }
                 });
 
@@ -445,7 +546,7 @@
                     dataSource: {
                         "chart": {
                             "caption": "Detected Bluetooth devices by type",
-                            "subCaption": lastMonth.format('L').toString() + " - " + today.format('L').toString(),
+                            "subCaption": lastMonth.format("DD/MM/YYYY").toString() + " - " + today.format("DD/MM/YYYY").toString(),
                             "usePlotGradientColor": 1,
                             "plotGradientColor": "#ffffff",
                             "bgColor": "#ffffff",
@@ -466,8 +567,8 @@
                             "captionFontSize": "14",
                             "subcaptionFontSize": "14",
                             "subcaptionFontBold": "0"
-                        },
-                        "data": bluetoothSubtypesData
+                        }
+                        //"data": bluetoothSubtypesData
                     }
                 });
             });

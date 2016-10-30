@@ -27,21 +27,58 @@
     <script type="text/javascript" src="~/js/daterangepicker.js"></script>
 
     <script type="text/javascript">
-        window.JSONdata = ["", "", "", "", ""];
+        window.date = "";
     </script>
 </head>
 <body>
     <div id="navbar-container">
         <ul class="navbar">
             <li class="left"><a>SmartSniff</a></li>
-            <li class="right"><a href="~/Views/Home/About.cshtml">About</a></li>
             <li class="right"><a class="active" href="~/home/stats">Statistics</a></li>
-            <li class="right"><a href="~/">Home</a></li>
+            <li class="right"><a href="~/">Heatmap</a></li>
         </ul>
     </div>
 
     <div id="stats-container">
+        <h2 style="text-align: center;">Statistics</h2>
+        <table class="table table-striped">
+            <tbody>
+                <tr>
+                    <td>Number of contributing devices</td>
+                    <td id="data-contributors"></td>
+                </tr>
+                <tr>
+                    <td>Number of registered sessions</td>
+                    <td id="data-sessions"></td>
+                </tr>
+                <tr>
+                    <td>Number of registered locations</td>
+                    <td id="data-locations"></td>
+                </tr>
+                <tr>
+                    <td>Number of registered devices</td>
+                    <td id="data-devices-total"></td>
+                </tr>
+                <tr>
+                    <td>Number of registered wifi devices (AP)</td>
+                    <td id="data-devices-wifi"></td>
+                </tr>
+                <tr>
+                    <td>Number of registered bluetooth devices</td>
+                    <td id="data-devices-bluetooth"></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <hr />
+
         <div id="datepicker">
+            <h2 style="text-align: center;">Charts</h2>
+            <a id="datepicker-intro">
+                The date picker will display charts with data as soon as a time range is selected. In order to select it, please click on the input box below.
+            </a>
+            <br />
+            <br />
             <b id="datepicker-text">Please select a time range</b>
             <input type="text" name="daterange" />
             <script type="text/javascript">
@@ -98,7 +135,8 @@
                     };
 
                     // GET: api/db/getstatisticsdata/01-02-1234/01-02-5678
-                    $.getJSON("/api/db/getstatisticsdata/" + start.toISOString() + "/" + end.toISOString(), function (json, status) {
+                    window.date = start.toISOString() + "/" + end.toISOString();
+                    /*$.getJSON("/api/db/getstatisticsdata/" + window.date, function (json, status) {
                         if (status == "success") {
                             var manufacturerChart = FusionCharts('manufacturer-chart');
                             manufacturerChart.setJSONData({
@@ -255,8 +293,8 @@
                             });
                             window.JSONdata[4] = bluetoothChart.getJSONData();
                         }
-                    });
-                });
+                    });*/
+                });  //NO TOCAR
 
                 $('input[name="daterange"]').on('apply.daterangepicker', function (ev, picker) {
                     $(this).val(picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY'));
@@ -271,97 +309,81 @@
 
         <div class="flip-dates" style="width: 100%; text-align: center;
     vertical-align: middle;">    
-            <button type="button" class="btn btn-lg btn-default custom-button">Display chart -  Daily devices detected</button>
+            <button type="button" class="btn btn-lg btn-default custom-button" id="flip-dates-button">Display chart -  Daily devices detected</button>
         </div>
         <div id="dates-chart-container"></div>
 
         <div class="flip-manufacturer" style="width: 100%;">
-            <button type="button" class="btn btn-lg btn-default custom-button">Display chart -  Found devices by manufacturer</button>
+            <button type="button" class="btn btn-lg btn-default custom-button" id="flip-manufacturer-button">Display chart -  Found devices by manufacturer</button>
         </div>
         <div id="manufacturer-chart-container"></div>
 
         <div class="flip-channelWidth" style="width: 100%;">
-            <button type="button" class="btn btn-lg btn-default custom-button">Display chart -  Most commonly used channel width</button>
+            <button type="button" class="btn btn-lg btn-default custom-button" id="flip-manufacturer-button">Display chart -  Most commonly used channel width</button>
         </div>
         <div id="channelWidth-chart-container"></div>
 
         <div class="flip-frequencies" style="width: 100%;">
-            <button type="button" class="btn btn-lg btn-default custom-button">Display chart -  Most commonly used frequency band</button>
+            <button type="button" class="btn btn-lg btn-default custom-button" id="flip-frequencies-button">Display chart -  Most commonly used frequency band</button>
         </div>
         <div id="frequencies-chart-container"></div>
 
         <div class="flip-bluetooth" style="width: 100%;">
-            <button type="button" class="btn btn-lg btn-default custom-button">Display chart -  Detected Bluetooth devices by type</button>
+            <button type="button" class="btn btn-lg btn-default custom-button" id="flip-bluetooth-button">Display chart -  Detected Bluetooth devices by type</button>
         </div>
         <div id="bluetoothSubtypes-chart-container"></div>
     </div>
 
 
     <script>
-        var manufacturerData = [];
-        var channelWidthData = [];
-        var frequenciesData = [];
-        var datesData = [];
-        var bluetoothSubtypesData = [];
-
         $(document).ready(function () {
-            var jsonData = "";
             //Callback function (Chart button)
             var buttonCallback = function (a, buttonClass, divId, chartId) {
                 a.preventDefault();
-                if ($(divId).is(":visible")) $(buttonClass).html($(buttonClass).html().replace("Hide", "Display"));
-                else $(buttonClass).html($(buttonClass).html().replace("Display", "Hide"));
-                $(divId).slideToggle(400, function () {
-                    var data;
-                    switch (divId) {
-                        case "#dates-chart-container":
-                            data = window.JSONdata[3];
-                            break;
-                        case "#manufacturer-chart-container":
-                            data = window.JSONdata[0];
-                            break;
-                        case "#channelWidth-chart-container":
-                            data = window.JSONdata[1];
-                            break;
-                        case "#frequencies-chart-container":
-                            data = window.JSONdata[2];
-                            break;
-                        case "#bluetoothSubtypes-chart-container":
-                            data = window.JSONdata[4];
-                            break;
 
-                    }
-                    if ($(divId).is(":visible") && data != "") {
-                        FusionCharts(chartId).setJSONData(data);
-                        //data = "";
-                    }
-                });
-                $("html, body").animate({ scrollTop: $(divId).offset().top + $(divId).height() }, 1000);
+                //Open window with date variable stored in the URL
+                //http://boards.straightdope.com/sdmb/showthread.php?t=594276
+                window.open("displaydateschart#" + window.date);               
             };
 
             //Chart button functions
-            $(".flip-dates").click(function (a) {
+            $("#flip-dates-button").click(function (a) {
                 buttonCallback(a, ".flip-dates", "#dates-chart-container", "dates-chart");
             });
 
-            $(".flip-manufacturer").click(function (a) {
+            $("#flip-manufacturer-button").click(function (a) {
                 buttonCallback(a, ".flip-manufacturer", "#manufacturer-chart-container", "manufacturer-chart");
             });
 
-            $(".flip-channelWidth").click(function (a) {
+            $("#flip-channelWidth-button").click(function (a) {
                 buttonCallback(a, ".flip-channelWidth", "#channelWidth-chart-container", "channelWidth-chart");
             });
 
-            $(".flip-frequencies").click(function (a) {
+            $("#flip-frequencies-button").click(function (a) {
                 buttonCallback(a, ".flip-frequencies", "#frequencies-chart-container", "frequencies-chart");
             });
 
-            $(".flip-bluetooth").click(function (a) {
+            $("#flip-bluetooth-button").click(function (a) {
                 buttonCallback(a, ".flip-bluetooth", "#bluetoothSubtypes-chart-container", "bluetoothSubtypes-chart");
             });
 
+            //Table data query
+            $.ajax({
+                url: '/api/db/gettabledata',
+                type: 'GET',
+                dataType: "json",
+                cache: false //GET requests are cached by browsers
+            }).done(function (response) {
+                document.getElementById("data-contributors").innerHTML = JSON.stringify(response[0]);
+                document.getElementById("data-sessions").innerHTML = JSON.stringify(response[1]);
+                document.getElementById("data-locations").innerHTML = JSON.stringify(response[2]);
+                document.getElementById("data-devices-total").innerHTML = JSON.stringify(response[3]);
+                document.getElementById("data-devices-wifi").innerHTML = JSON.stringify(response[4]);
+                document.getElementById("data-devices-bluetooth").innerHTML = JSON.stringify(response[5]);
+            })
 
-            var today = moment();
+
+            /*var today = moment();
             var lastMonth = moment().subtract(1, 'M');
             $.ajax({
                 url: '/api/db/getstatisticsdata/' + lastMonth.toISOString() + '/' + today.toISOString(),
@@ -392,9 +414,9 @@
                 $("#manufacturer-chart-container").insertFusionCharts({
                     id: 'manufacturer-chart',
                     type: 'doughnut2d',
-                    renderAt: 'manufacturer-chart-container',
-                    width: '900',
-                    height: '900',
+                    renderAt: 'chart-container',
+                    width: '700',
+                    height: '700',
                     dataFormat: 'json',
                     dataSource: {
                         "chart": {
@@ -428,9 +450,9 @@
                 $("#channelWidth-chart-container").insertFusionCharts({
                     id: 'channelWidth-chart',
                     type: 'doughnut2d',
-                    renderAt: 'channelWidth-chart-container',
-                    width: '900',
-                    height: '900',
+                    renderAt: 'chart-container',
+                    width: '700',
+                    height: '700',
                     dataFormat: 'json',
                     dataSource: {
                         "chart": {
@@ -464,9 +486,9 @@
                 $("#frequencies-chart-container").insertFusionCharts({
                     id: 'frequencies-chart',
                     type: 'doughnut2d',
-                    renderAt: 'frequencies-chart-container',
-                    width: '900',
-                    height: '900',
+                    renderAt: 'chart-container',
+                    width: '700',
+                    height: '700',
                     dataFormat: 'json',
                     dataSource: {
                         "chart": {
@@ -500,9 +522,9 @@
                 $("#dates-chart-container").insertFusionCharts({
                     id: 'dates-chart',
                     type: 'bar2d',
-                    renderAt: 'dates-chart-container',
-                    width: '900',
-                    height: '900',
+                    renderAt: 'chart-container',
+                    width: '700',
+                    height: '700',
                     dataFormat: 'json',
                     dataSource: {
                         "chart": {
@@ -539,9 +561,9 @@
                 $("#bluetoothSubtypes-chart-container").insertFusionCharts({
                     id: 'bluetoothSubtypes-chart',
                     type: 'doughnut2d',
-                    renderAt: 'bluetoothSubtypes-chart-container',
-                    width: '900',
-                    height: '900',
+                    renderAt: 'chart-container',
+                    width: '700',
+                    height: '700',
                     dataFormat: 'json',
                     dataSource: {
                         "chart": {
@@ -571,7 +593,7 @@
                         //"data": bluetoothSubtypesData
                     }
                 });
-            });
+            });*/
         })
     </script>
 </body>

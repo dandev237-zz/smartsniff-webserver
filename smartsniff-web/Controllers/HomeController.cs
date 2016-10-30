@@ -19,6 +19,11 @@ namespace smartsniff_web.Controllers
             return View();
         }
 
+        public IActionResult DisplayDatesChart()
+        {
+            return View();
+        }
+
         public IActionResult About()
         {
             ViewData["Message"] = "Your application description page.";

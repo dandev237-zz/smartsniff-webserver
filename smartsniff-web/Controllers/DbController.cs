@@ -363,6 +363,34 @@ namespace smartsniff_api.Controllers
             return statisticsDataJson;
         }
 
+        //GET api/db/gettabledata
+        [HttpGet("GetTableData")]
+        public IActionResult GetTableData()
+        {
+            int[] tableDataArray = new int[6];
+
+            //Contributors count
+            tableDataArray[0] = context.Session.Select(o => o.MacAddress).Distinct().Count();
+
+            //Sessions count
+            tableDataArray[1] = context.Session.Count();
+
+            //Locations count
+            tableDataArray[2] = context.Location.Count();
+
+            //Total devices count
+            tableDataArray[3] = context.Device.Count();
+
+            //Wifi devices count
+            tableDataArray[4] = context.Device.Where(o => o.Type.Equals("WIFI")).Count();
+
+            //Bluetooth devices count
+            tableDataArray[5] = context.Device.Where(o => o.Type.Equals("BLUETOOTH")).Count();
+
+            JsonResult tableDataJson = Json(tableDataArray);
+            return tableDataJson;
+        }
+
         public int GetFirstDigit(short? number)
         {
             int r = (Int16)number;

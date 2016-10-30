@@ -29,6 +29,9 @@ html, body, #map-container, #stats-container {
     vertical-align: middle;
     margin-top: 7px;
     margin-bottom: 7px;
+    width: 70%;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .flip-dates, .flip-manufacturer, .flip-channelWidth, .flip-frequencies, .flip-bluetooth{
@@ -104,4 +107,20 @@ ul.navbar {
 #manufacturer-chart-container, #channelWidth-chart-container, #frequencies-chart-container,
 #dates-chart-container, #bluetoothSubtypes-chart-container {
     border: 10px;
+}
+
+hr {
+    display: block;
+    position: relative;
+    padding: 0;
+    margin: 8px auto;
+    width: 80%;
+    height: 5px;
+    max-height: 5px;
+    font-size: 1px;
+    line-height: 5px;
+    clear: both;
+    border: none;
+    border-top: 1px solid #aaaaaa;
+    border-bottom: 1px solid #ffffff;
 }

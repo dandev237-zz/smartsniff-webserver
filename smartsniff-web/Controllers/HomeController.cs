@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 
 namespace smartsniff_web.Controllers
 {
@@ -24,17 +20,23 @@ namespace smartsniff_web.Controllers
             return View();
         }
 
-        public IActionResult About()
+        public IActionResult DisplayBluetoothChart()
         {
-            ViewData["Message"] = "Your application description page.";
-
             return View();
         }
 
-        public IActionResult Contact()
+        public IActionResult DisplayChannelWidthChart()
         {
-            ViewData["Message"] = "Your contact page.";
+            return View();
+        }
 
+        public IActionResult DisplayFrequenciesChart()
+        {
+            return View();
+        }
+
+        public IActionResult DisplayManufacturerChart()
+        {
             return View();
         }
 

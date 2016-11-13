@@ -42,45 +42,42 @@
             var isSameDay = parameters[1];
             var subCaption = isSameDay == "false" ? from + " - " + to : to;
 
-            //api/db/getstatisticsdata/20-09-2016/29-09-2016
             $.getJSON("/api/db/getstatisticsdata/" + date[0] + "/" + date[1], function (json, status) {
                 if (status == "success") {
                     $("#chart-container").insertFusionCharts({
-                        id: 'dates-chart',
-                        type: 'bar2d',
+                        id: 'manufacturers-chart',
+                        type: 'doughnut2d',
                         renderAt: 'chart-container',
                         width: '700',
                         height: '700',
                         dataFormat: 'json',
                         dataSource: {
                             "chart": {
-                                "caption": "Daily devices detected",
+                                "caption": "Found devices by manufacturer",
                                 "subCaption": subCaption,
-                                "yAxisName": "Number of devices",
-                                "paletteColors": "#0075c2",
+                                "usePlotGradientColor": 1,
+                                "plotGradientColor": "#ffffff",
                                 "bgColor": "#ffffff",
-                                "showBorder": "1",
-                                "showCanvasBorder": "1",
-                                "usePlotGradientColor": "0",
-                                "plotBorderAlpha": "10",
-                                "placeValuesInside": "1",
-                                "valueFontColor": "#ffffff",
-                                "showAxisLines": "1",
-                                "axisLineAlpha": "25",
-                                "divLineAlpha": "10",
-                                "alignCaptionWithCanvas": "0",
-                                "showAlternateVGridColor": "0",
+                                "showBorder": "0",
+                                "use3DLighting": "0",
+                                "showShadow": "0",
+                                "enableSmartLabels": "1",
+                                "startingAngle": "310",
+                                "showLabels": "0",
+                                "showValues": "0",
+                                "showPercentValues": "1",
+                                "showLegend": "1",
+                                "legendShadow": "1",
+                                "legendBorderAlpha": "1",
+                                "centerLabel": "$label: $value",
+                                "centerLabelBold": "1",
+                                "showTooltip": "0",
+                                "decimals": "0",
                                 "captionFontSize": "14",
                                 "subcaptionFontSize": "14",
-                                "subcaptionFontBold": "0",
-                                "toolTipColor": "#ffffff",
-                                "toolTipBorderThickness": "0",
-                                "toolTipBgColor": "#000000",
-                                "toolTipBgAlpha": "80",
-                                "toolTipBorderRadius": "2",
-                                "toolTipPadding": "5"
+                                "subcaptionFontBold": "0"
                             },
-                            "data": json[3]['statDataArray']
+                            "data": json[0]['statDataArray']
                         }
                     });
                 }

@@ -11,8 +11,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 
-// For more information on enabling Web API for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
-
 namespace smartsniff_api.Controllers
 {
     [Route("api/[controller]")]
@@ -243,6 +241,8 @@ namespace smartsniff_api.Controllers
             List<int> frequencies = new List<int>();
             List<String> bluetoothSubtypes = new List<String>();
 
+            //Get all the dates within the time interval from the sessions table
+            //Once we have all the dates, we get all the devices from the sessions
             List<String> dates = new List<String>();
             foreach (Session s in sessions)
             {
@@ -261,8 +261,10 @@ namespace smartsniff_api.Controllers
             }
             dates.Sort();
 
+            //Device data required to fill the charts
             foreach (Device d in devices)
             {
+                //Manufacturer data
                 if (manufacturers.Contains(d.Manufacturer)) continue;
                 else
                 {
@@ -271,12 +273,14 @@ namespace smartsniff_api.Controllers
 
                 if (d.Type.Equals("WIFI"))
                 {
+                    //Channel width data
                     if (channelWidths.Contains(d.ChannelWidth)) continue;
                     else
                     {
                         channelWidths.Add(d.ChannelWidth);
                     }
 
+                    //Frequency data
                     if (GetFirstDigit(d.Frequency) == 2 && !frequencies.Contains(2))
                     {
                         frequencies.Add(2);
@@ -288,6 +292,7 @@ namespace smartsniff_api.Controllers
                 }
                 else //Bluetooth
                 {
+                    //Bluetooth subtypes data
                     if (bluetoothSubtypes.Contains(d.Characteristics)) continue;
                     else
                     {
@@ -296,7 +301,6 @@ namespace smartsniff_api.Controllers
                 }
             }
 
-            
 
             //First chart (Manufacturers)
             if (manufacturers.Contains("NotFound")) manufacturers.Remove("NotFound");
@@ -305,8 +309,12 @@ namespace smartsniff_api.Controllers
             foreach(String manufacturer in manufacturers)
             {
                     var count = context.Device.Where(o => o.Manufacturer.Equals(manufacturer)).Count();
-
-                    manufacturerData[manufacturers.IndexOf(manufacturer)] = new StatData(manufacturer, count);
+                    
+                    if(count > 0)
+                    {
+                        manufacturerData[manufacturers.IndexOf(manufacturer)] = new StatData(manufacturer, count);
+                    }
+                    
             }
 
             //Second chart (Channel Width)
@@ -315,7 +323,10 @@ namespace smartsniff_api.Controllers
             {
                 var count = context.Device.Where(o => o.ChannelWidth.Equals(channelWidth)).Count();
 
-                channelWidthData[channelWidths.IndexOf(channelWidth)] = new StatData(channelWidth, count);
+                if (count > 0)
+                {
+                    channelWidthData[channelWidths.IndexOf(channelWidth)] = new StatData(channelWidth, count);
+                }
             }
 
             //Third chart (Frequencies)
@@ -324,12 +335,16 @@ namespace smartsniff_api.Controllers
             {
                 var count = context.Device.Where(o => GetFirstDigit(o.Frequency) == frequency).Count();
 
-                if(frequency == 2)
+                if(count > 0)
                 {
-                    frequenciesData[frequencies.IndexOf(frequency)] = new StatData("2,4 GHz", count);
-                }else if(frequency == 5)
-                {
-                    frequenciesData[frequencies.IndexOf(frequency)] = new StatData("5 GHz", count);
+                    if (frequency == 2)
+                    {
+                        frequenciesData[frequencies.IndexOf(frequency)] = new StatData("2,4 GHz", count);
+                    }
+                    else if (frequency == 5)
+                    {
+                        frequenciesData[frequencies.IndexOf(frequency)] = new StatData("5 GHz", count);
+                    }
                 }
             }
 
@@ -339,7 +354,10 @@ namespace smartsniff_api.Controllers
             {
                 var count = context.AsocSessionDevice.Where(o => o.session.StartDate.Date.ToString("dd/M/yyyy").Equals(date)).Count();
 
-                datesData[dates.IndexOf(date)] = new StatData(date, count);
+                if(count > 9)
+                {
+                    datesData[dates.IndexOf(date)] = new StatData(date, count);
+                }
             }
 
             //Fifth chart (Bluetooth subtypes)
@@ -348,10 +366,13 @@ namespace smartsniff_api.Controllers
             {
                 var count = context.Device.Where(o => o.Characteristics.Equals(bluetoothSubtype)).Count();
 
-                bluetoothSubtypesData[bluetoothSubtypes.IndexOf(bluetoothSubtype)] = new StatData(bluetoothSubtype, count);
+                if(count > 0)
+                {
+                    bluetoothSubtypesData[bluetoothSubtypes.IndexOf(bluetoothSubtype)] = new StatData(bluetoothSubtype, count);
+                }
             }
 
-
+            //JSON Object
             StatArray[] statisticsArray = new StatArray[5];
             statisticsArray[0] = new StatArray(manufacturerData);
             statisticsArray[1] = new StatArray(channelWidthData);

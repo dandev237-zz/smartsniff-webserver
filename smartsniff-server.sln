@@ -1,16 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.26430.16
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{65D18F85-394D-4F67-8735-D1BF99EB8423}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{E6261A11-CC51-4C43-9E9F-9783BDCE630A}"
-	ProjectSection(SolutionItems) = preProject
-		global.json = global.json
-	EndProjectSection
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "smartsniff-web", "smartsniff-web\smartsniff-web.xproj", "{00C7CF1C-D070-471D-838C-85A592B7AE27}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "smartsniff-web", "smartsniff-web\smartsniff-web.csproj", "{00C7CF1C-D070-471D-838C-85A592B7AE27}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
